@@ -45,7 +45,7 @@ describe('Receipt Editing Integration', () => {
 
   describe('Complete Receipt Workflow', () => {
     it('should handle loading and editing Makro receipt', async () => {
-      const sessionId = 'makro-receipt-123'
+      const sessionId = '550e8400-e29b-41d4-a716-446655440000'
 
       // Mock loading receipt data
       const mockSession = {
@@ -95,7 +95,7 @@ describe('Receipt Editing Integration', () => {
     })
 
     it('should handle quantity modifications in receipt', async () => {
-      const sessionId = 'qty-modification-test'
+      const sessionId = '550e8400-e29b-41d4-a716-446655440001'
 
       // Original receipt
       const originalReceipt = makroReceiptJson
@@ -146,7 +146,7 @@ describe('Receipt Editing Integration', () => {
     })
 
     it('should handle item removal from receipt', async () => {
-      const sessionId = 'item-removal-test'
+      const sessionId = '550e8400-e29b-41d4-a716-446655440002'
 
       mockGetSession.mockResolvedValueOnce({
         id: sessionId,
@@ -184,7 +184,7 @@ describe('Receipt Editing Integration', () => {
     })
 
     it('should handle adding new items to receipt', async () => {
-      const sessionId = 'item-addition-test'
+      const sessionId = '550e8400-e29b-41d4-a716-446655440003'
 
       mockGetSession.mockResolvedValueOnce({
         id: sessionId,
@@ -234,8 +234,9 @@ describe('Receipt Editing Integration', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
-      const sessionId = 'error-test'
+      const sessionId = '550e8400-e29b-41d4-a716-446655440004'
 
+      // Mock database error
       mockGetSession.mockRejectedValueOnce(new Error('Database connection failed'))
 
       const request = new (require('next/server').NextRequest)(`http://localhost/api/session?session_id=${sessionId}`)
@@ -247,7 +248,7 @@ describe('Receipt Editing Integration', () => {
     })
 
     it('should validate receipt data structure', async () => {
-      const sessionId = 'validation-test'
+      const sessionId = '550e8400-e29b-41d4-a716-446655440005'
 
       // Invalid data - not an array
       const postRequest = new (require('next/server').NextRequest)('http://localhost/api/session')
@@ -260,7 +261,7 @@ describe('Receipt Editing Integration', () => {
 
       expect(response.status).toBe(400)
       const result = await response.json()
-      expect(result.error).toBe('Data must be an array')
+      expect(result.error).toContain('Invalid receipt data')
     })
   })
 })
