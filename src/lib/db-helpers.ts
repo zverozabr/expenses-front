@@ -29,7 +29,7 @@ export async function createSessionsTable(): Promise<void> {
     CREATE TABLE IF NOT EXISTS sessions (
       id UUID PRIMARY KEY,
       data JSONB NOT NULL,
-      status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'ready')),
+      status TEXT DEFAULT 'pending',
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
@@ -48,7 +48,7 @@ export async function createSessionsTable(): Promise<void> {
         NEW.updated_at = CURRENT_TIMESTAMP;
         RETURN NEW;
     END;
-    $$ language 'plpgsql'
+    $$ LANGUAGE plpgsql
   `
 
   // Create trigger
