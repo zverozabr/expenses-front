@@ -24,30 +24,25 @@ export async function GET() {
     // Final check
     const tableExistsNow = await checkSessionsTableExists()
 
+    // KISS: Simple success response matching API contract
     return NextResponse.json({
-      status: 'healthy',
+      success: true,
       database: {
         connection: 'successful',
         provider: 'Prisma Postgres',
         sessions_table: tableExistsNow ? 'exists' : 'missing',
         auto_migration: tableExistedInitially ? 'not_needed' : (tableExistsNow ? 'successful' : 'failed')
       },
-      message: tableExistsNow
-        ? 'Frontend is ready for bot integration'
-        : 'Database setup incomplete',
       timestamp: new Date().toISOString()
     })
 
   } catch (error) {
     console.error('Health check failed:', error)
 
+    // KISS: Simple error response matching API contract
     return NextResponse.json({
-      status: 'unhealthy',
-      database: {
-        connection: 'failed',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      message: 'Frontend is not ready for bot integration',
+      success: false,
+      error: error instanceof Error ? error.message : 'Database connection failed',
       timestamp: new Date().toISOString()
     }, { status: 500 })
   }
