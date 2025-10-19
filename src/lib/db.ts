@@ -7,8 +7,9 @@ export function sql(strings: TemplateStringsArray, ...values: any[]) {
     if (!process.env.POSTGRES_URL) {
       throw new Error('POSTGRES_URL environment variable is not set')
     }
-    // Remove query parameters from the connection string as neon() may not support them
-    const url = new URL(process.env.POSTGRES_URL)
+    // Remove surrounding quotes and query parameters from the connection string
+    const cleanConnectionString = process.env.POSTGRES_URL.replace(/^["']|["']$/g, '')
+    const url = new URL(cleanConnectionString)
     const cleanUrl = `${url.protocol}//${url.host}${url.pathname}`
     sqlInstance = neon(cleanUrl)
   }
