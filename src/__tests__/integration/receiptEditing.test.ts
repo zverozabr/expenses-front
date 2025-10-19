@@ -28,7 +28,7 @@ jest.mock('next/server', () => ({
 jest.mock('@/lib/sessionService', () => ({
   sessionService: {
     getSession: jest.fn(),
-    updateSession: jest.fn(),
+    upsertSession: jest.fn(),
   },
 }))
 
@@ -36,7 +36,7 @@ import { GET, POST } from '@/app/api/session/route'
 import { sessionService } from '@/lib/sessionService'
 
 const mockGetSession = sessionService.getSession as jest.MockedFunction<typeof sessionService.getSession>
-const mockUpdateSession = sessionService.updateSession as jest.MockedFunction<typeof sessionService.updateSession>
+const mockUpsertSession = sessionService.upsertSession as jest.MockedFunction<typeof sessionService.upsertSession>
 
 describe('Receipt Editing Integration', () => {
   beforeEach(() => {
@@ -77,7 +77,7 @@ describe('Receipt Editing Integration', () => {
       )
 
       // Mock saving edited data
-      mockUpdateSession.mockResolvedValueOnce(undefined)
+      mockUpsertSession.mockResolvedValueOnce(undefined)
 
       // Test POST request with edited data
       const postRequest = new (require('next/server').NextRequest)('http://localhost/api/session')
@@ -91,7 +91,7 @@ describe('Receipt Editing Integration', () => {
       expect(postResponse.status).toBe(200)
       const postResult = await postResponse.json()
       expect(postResult.success).toBe(true)
-      expect(mockUpdateSession).toHaveBeenCalledWith(sessionId, makroReceiptEditedJson)
+      expect(mockUpsertSession).toHaveBeenCalledWith(sessionId, makroReceiptEditedJson)
     })
 
     it('should handle quantity modifications in receipt', async () => {
@@ -126,7 +126,7 @@ describe('Receipt Editing Integration', () => {
       )
 
       // Save modifications
-      mockUpdateSession.mockResolvedValueOnce(undefined)
+      mockUpsertSession.mockResolvedValueOnce(undefined)
       const postRequest = new (require('next/server').NextRequest)('http://localhost/api/session')
       postRequest.json.mockResolvedValueOnce({
         session_id: sessionId,
@@ -137,7 +137,7 @@ describe('Receipt Editing Integration', () => {
       const postResult = await postResponse.json()
 
       expect(postResult.success).toBe(true)
-      expect(mockUpdateSession).toHaveBeenCalledWith(sessionId, modifiedReceipt)
+      expect(mockUpsertSession).toHaveBeenCalledWith(sessionId, modifiedReceipt)
 
       // Verify the modification
       const modifiedItem = modifiedReceipt.find((item: any) => item['#'] === 2)
@@ -169,7 +169,7 @@ describe('Receipt Editing Integration', () => {
       expect(filteredReceipt).toHaveLength(5) // Removed 2 items
 
       // Save filtered receipt
-      mockUpdateSession.mockResolvedValueOnce(undefined)
+      mockUpsertSession.mockResolvedValueOnce(undefined)
       const postRequest = new (require('next/server').NextRequest)('http://localhost/api/session')
       postRequest.json.mockResolvedValueOnce({
         session_id: sessionId,
@@ -180,7 +180,7 @@ describe('Receipt Editing Integration', () => {
       const postResult = await postResponse.json()
 
       expect(postResult.success).toBe(true)
-      expect(mockUpdateSession).toHaveBeenCalledWith(sessionId, filteredReceipt)
+      expect(mockUpsertSession).toHaveBeenCalledWith(sessionId, filteredReceipt)
     })
 
     it('should handle adding new items to receipt', async () => {
@@ -217,7 +217,7 @@ describe('Receipt Editing Integration', () => {
       expect(receiptWithNewItem).toHaveLength(originalLength + 1)
 
       // Save receipt with new item
-      mockUpdateSession.mockResolvedValueOnce(undefined)
+      mockUpsertSession.mockResolvedValueOnce(undefined)
       const postRequest = new (require('next/server').NextRequest)('http://localhost/api/session')
       postRequest.json.mockResolvedValueOnce({
         session_id: sessionId,
@@ -228,7 +228,7 @@ describe('Receipt Editing Integration', () => {
       const postResult = await postResponse.json()
 
       expect(postResult.success).toBe(true)
-      expect(mockUpdateSession).toHaveBeenCalledWith(sessionId, receiptWithNewItem)
+      expect(mockUpsertSession).toHaveBeenCalledWith(sessionId, receiptWithNewItem)
     })
   })
 

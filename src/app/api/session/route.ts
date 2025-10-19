@@ -137,8 +137,9 @@ async function _POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
       ) as NextResponse<ApiResponse>
     }
 
-    // Update session with validated data (already validated above)
-    await sessionService.updateSession(validSessionId, data)
+    // KISS: Use UPSERT to handle both create and update in one operation
+    // This eliminates the need to check if session exists first
+    await sessionService.upsertSession(validSessionId, data)
     logSessionOperation('update', validSessionId, undefined, true)
 
     return NextResponse.json(

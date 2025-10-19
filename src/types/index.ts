@@ -22,9 +22,11 @@ export interface ApiResponse<T = any> {
 }
 
 // Session service interface for dependency injection
+// SOLID: Interface Segregation - minimal, focused interface
 export interface ISessionService {
   getSession(sessionId: string): Promise<SessionData | null>
   updateSession(sessionId: string, data: ReceiptData): Promise<void>
+  upsertSession(sessionId: string, data: ReceiptData): Promise<void>
 }
 
 // Hook return type with proper typing

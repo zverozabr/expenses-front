@@ -21,6 +21,17 @@ this.cache = new LRUCache({
   }
 
   /**
+   * Centralized error handling and logging
+   * Eliminates DRY violations and improves maintainability
+   */
+  private handleError(operation: 'create' | 'read' | 'update', sessionId: string, error: unknown): never {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    logDatabaseError(operation, 'sessions', message, { sessionId })
+    logSessionOperation(operation, sessionId, undefined, false, message)
+    throw new Error(`Failed to ${operation} session data`)
+  }
+
+  /**
     * Retrieves session data by session ID
     * @param sessionId - Unique identifier for the session
     * @returns Promise resolving to session data or null if not found
@@ -44,8 +55,8 @@ this.cache = new LRUCache({
       // Validate data from database
       const validationResult = safeValidateReceiptData(rows[0].data)
       if (!validationResult.success) {
-        logDatabaseError('read', 'sessions', `Corrupted data for session ${sessionId}: ${validationResult.error}`)
-        throw new Error('Corrupted data in database')
+      logDatabaseError('read', 'sessions', `Corrupted data for session ${sessionId}: ${validationResult.error}`)
+      throw new Error('Corrupted data in database')
       }
 
       const sessionData = {
@@ -59,9 +70,7 @@ this.cache = new LRUCache({
 
       return sessionData
     } catch (error) {
-      logDatabaseError('read', 'sessions', error instanceof Error ? error.message : 'Unknown error', { sessionId })
-      logSessionOperation('read', sessionId, undefined, false, error instanceof Error ? error.message : 'Unknown error')
-      throw new Error('Failed to retrieve session data')
+      this.handleError('read', sessionId, error)
     }
   }
 
@@ -85,9 +94,7 @@ this.cache = new LRUCache({
       // Invalidate cache after update
       this.cache.delete(sessionId)
     } catch (error) {
-      logDatabaseError('update', 'sessions', error instanceof Error ? error.message : 'Unknown error', { sessionId })
-      logSessionOperation('update', sessionId, undefined, false, error instanceof Error ? error.message : 'Unknown error')
-      throw new Error('Failed to update session data')
+      this.handleError('update', sessionId, error)
     }
   }
 
@@ -106,9 +113,45 @@ this.cache = new LRUCache({
         VALUES (${sessionId}, ${JSON.stringify(data)}, 'pending')
       `
     } catch (error) {
-      logDatabaseError('create', 'sessions', error instanceof Error ? error.message : 'Unknown error', { sessionId })
-      logSessionOperation('create', sessionId, undefined, false, error instanceof Error ? error.message : 'Unknown error')
-      throw new Error('Failed to create session')
+      this.handleError('create', sessionId, error)
+    }
+  }
+
+  /**
+   * Creates or updates session data (UPSERT)
+   * KISS: Single method for both create and update operations
+   * DRY: Reuses validation and cache invalidation logic
+   * SOLID: Single Responsibility - manages session persistence
+   *
+   * @param sessionId - Unique identifier for the session
+   * @param data - Receipt data to save
+   */
+  async upsertSession(sessionId: string, data: ReceiptData): Promise<void> {
+    try {
+      // Validate data before saving (DRY: same validation as create/update)
+      validateReceiptData(data)
+
+      // KISS: Simple UPSERT pattern using PostgreSQL ON CONFLICT
+      await sql`
+        INSERT INTO sessions (id, data, status, created_at, updated_at)
+        VALUES (
+          ${sessionId},
+          ${JSON.stringify(data)},
+          'ready',
+          NOW(),
+          NOW()
+        )
+        ON CONFLICT (id)
+        DO UPDATE SET
+          data = EXCLUDED.data,
+          status = 'ready',
+          updated_at = NOW()
+      `
+
+      // Invalidate cache after update (DRY: consistent cache management)
+      this.cache.delete(sessionId)
+    } catch (error) {
+      this.handleError('update', sessionId, error)
     }
   }
 }

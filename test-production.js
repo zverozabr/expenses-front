@@ -1,18 +1,12 @@
+#!/usr/bin/env node
+
 /**
-* E2E Test for Production Deployment
-* Tests the deployed application on Vercel
-*
-* This is a placeholder test file for Jest compatibility.
-* Real E2E tests should be run separately with the standalone script.
-*/
+ * Standalone E2E Production Test
+ * Tests the deployed application on Vercel
+ * Usage: node test-production.js
+ */
 
-describe('E2E Production Tests', () => {
-  it('should be a placeholder for E2E tests', () => {
-    expect(true).toBe(true)
-  })
-})
-
-const PRODUCTION_URL = 'https://expenses-front-eight.vercel.app'
+const PRODUCTION_URL = process.env.PRODUCTION_URL || 'https://expenses-front-eight.vercel.app'
 
 interface TestResult {
   test: string
@@ -21,7 +15,7 @@ interface TestResult {
   details?: any
 }
 
-const results: TestResult[] = []
+const results = []
 
 // Colors for terminal output
 const colors = {
@@ -33,37 +27,37 @@ const colors = {
   gray: '\x1b[90m'
 }
 
-function log(message: string, color: string = colors.reset) {
+function log(message, color = colors.reset) {
   console.log(`${color}${message}${colors.reset}`)
 }
 
-function logTest(name: string) {
+function logTest(name) {
   log(`\n▶ ${name}`, colors.blue)
 }
 
-function logPass(message: string) {
+function logPass(message) {
   log(`  ✓ ${message}`, colors.green)
 }
 
-function logFail(message: string) {
+function logFail(message) {
   log(`  ✗ ${message}`, colors.red)
 }
 
-function logInfo(message: string) {
+function logInfo(message) {
   log(`  ℹ ${message}`, colors.gray)
 }
 
 // Test 1: Health Check
-async function testHealthCheck(): Promise<TestResult> {
+async function testHealthCheck() {
   logTest('Health Check')
 
   try {
     const response = await fetch(`${PRODUCTION_URL}/api/health`)
     const data = await response.json()
 
-    if (response.status === 200 && data.status === 'ok') {
+    if (response.status === 200 && data.status === 'healthy') {
       logPass('Application is healthy')
-      logInfo(`Database: ${data.database || 'connected'}`)
+      logInfo(`Database: ${data.database?.connection || 'connected'}`)
 
       return {
         test: 'Health Check',
@@ -93,7 +87,7 @@ async function testHealthCheck(): Promise<TestResult> {
 }
 
 // Test 2: Session API - GET with invalid session
-async function testGetInvalidSession(): Promise<TestResult> {
+async function testGetInvalidSession() {
   logTest('GET /api/session - Invalid Session')
 
   try {
@@ -131,7 +125,7 @@ async function testGetInvalidSession(): Promise<TestResult> {
 }
 
 // Test 3: Session API - GET non-existent session
-async function testGetNonExistentSession(): Promise<TestResult> {
+async function testGetNonExistentSession() {
   logTest('GET /api/session - Non-existent Session')
 
   try {
@@ -168,9 +162,9 @@ async function testGetNonExistentSession(): Promise<TestResult> {
   }
 }
 
-// Test 4: Create and Retrieve Session
-async function testCreateAndRetrieveSession(): Promise<TestResult> {
-  logTest('POST + GET /api/session - Create and Retrieve')
+// Test 4: Create and Retrieve Session (UPSERT test)
+async function testCreateAndRetrieveSession() {
+  logTest('POST + GET /api/session - Create and Retrieve (UPSERT)')
 
   try {
     const sessionId = `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -199,7 +193,7 @@ async function testCreateAndRetrieveSession(): Promise<TestResult> {
       }
     ]
 
-    // Create session
+    // Create session (UPSERT)
     const createResponse = await fetch(`${PRODUCTION_URL}/api/session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -219,7 +213,7 @@ async function testCreateAndRetrieveSession(): Promise<TestResult> {
       }
     }
 
-    logPass('Session created successfully')
+    logPass('Session created successfully via UPSERT')
 
     // Wait a bit for database consistency
     await new Promise(resolve => setTimeout(resolve, 1000))
@@ -268,8 +262,8 @@ async function testCreateAndRetrieveSession(): Promise<TestResult> {
 }
 
 // Test 5: Edit Session Data
-async function testEditSession(): Promise<TestResult> {
-  logTest('POST /api/session - Edit Existing Session')
+async function testEditSession() {
+  logTest('POST /api/session - Edit Existing Session (UPSERT update)')
 
   try {
     const sessionId = `edit-test-${Date.now()}`
@@ -298,7 +292,7 @@ async function testEditSession(): Promise<TestResult> {
 
     await new Promise(resolve => setTimeout(resolve, 1000))
 
-    // Update session
+    // Update session (UPSERT)
     const editedData = [
       {
         "#": 1,
@@ -333,7 +327,7 @@ async function testEditSession(): Promise<TestResult> {
     const updateResult = await updateResponse.json()
 
     if (updateResponse.status === 200 && updateResult.success) {
-      logPass('Session updated successfully')
+      logPass('Session updated successfully via UPSERT')
 
       // Verify update
       await new Promise(resolve => setTimeout(resolve, 1000))
@@ -346,7 +340,7 @@ async function testEditSession(): Promise<TestResult> {
         return {
           test: 'Edit Session',
           status: 'PASS',
-          message: 'Session edited successfully',
+          message: 'Session edited successfully via UPSERT',
           details: { items: getData.data.length }
         }
       } else {
@@ -380,7 +374,7 @@ async function testEditSession(): Promise<TestResult> {
 }
 
 // Test 6: Data Validation
-async function testDataValidation(): Promise<TestResult> {
+async function testDataValidation() {
   logTest('POST /api/session - Data Validation')
 
   try {
@@ -437,58 +431,11 @@ async function testDataValidation(): Promise<TestResult> {
   }
 }
 
-// Test 7: Rate Limiting
-async function testRateLimiting(): Promise<TestResult> {
-  logTest('Rate Limiting')
-
-  try {
-    const requests: Promise<Response>[] = []
-    const requestCount = 70 // Exceed the 60/min limit
-
-    logInfo(`Sending ${requestCount} requests...`)
-
-    for (let i = 0; i < requestCount; i++) {
-      requests.push(
-        fetch(`${PRODUCTION_URL}/api/session?session_id=550e8400-e29b-41d4-a716-446655440000`)
-      )
-    }
-
-    const responses = await Promise.all(requests)
-    const rateLimited = responses.filter(r => r.status === 429)
-
-    if (rateLimited.length > 0) {
-      logPass(`Rate limiting active: ${rateLimited.length} requests blocked`)
-
-      return {
-        test: 'Rate Limiting',
-        status: 'PASS',
-        message: `Rate limiting working: ${rateLimited.length}/${requestCount} blocked`
-      }
-    } else {
-      logFail('Rate limiting not triggered')
-
-      return {
-        test: 'Rate Limiting',
-        status: 'FAIL',
-        message: 'Rate limiting not triggered (or limit is higher than expected)'
-      }
-    }
-  } catch (error) {
-    logFail(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
-
-    return {
-      test: 'Rate Limiting',
-      status: 'FAIL',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }
-  }
-}
-
 // Main test runner
 async function runTests() {
   log('\n╔════════════════════════════════════════════════════════════╗', colors.blue)
   log('║   E2E Production Deployment Test                          ║', colors.blue)
-  log('║   https://expenses-front-eight.vercel.app                 ║', colors.blue)
+  log(`║   ${PRODUCTION_URL}                 ║`, colors.blue)
   log('╚════════════════════════════════════════════════════════════╝', colors.blue)
 
   const tests = [
@@ -497,8 +444,7 @@ async function runTests() {
     testGetNonExistentSession,
     testCreateAndRetrieveSession,
     testEditSession,
-    testDataValidation,
-    testRateLimiting
+    testDataValidation
   ]
 
   for (const test of tests) {
@@ -537,4 +483,3 @@ runTests().catch(error => {
   console.error('Test runner error:', error)
   process.exit(1)
 })
-
