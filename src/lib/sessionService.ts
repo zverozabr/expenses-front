@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres'
+import { sql } from './db'
 import { SessionData, ISessionService, ReceiptData } from '@/types'
 import { validateReceiptData, safeValidateReceiptData } from '@/lib/validation'
 import { logSessionOperation, logDatabaseError } from '@/lib/logger'
