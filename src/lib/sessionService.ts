@@ -37,7 +37,7 @@ this.cache = new LRUCache({
         SELECT id, data, status
         FROM sessions
         WHERE id = ${sessionId}
-      `
+      ` as any[]
 
       if (rows.length === 0) return null
 
