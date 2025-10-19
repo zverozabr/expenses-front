@@ -3,39 +3,25 @@ import { sessionService } from '@/lib/sessionService'
 import { ApiResponse, ReceiptData } from '@/types'
 import { validateSessionId, safeValidateReceiptData, validateReceiptData } from '@/lib/validation'
 import { rateLimitMiddleware, apiRateLimits } from '@/lib/rateLimit'
-import { logger, logAPIRequest, logSessionOperation, logValidationError, logRateLimitExceeded } from '@/lib/logger'
+import { logger, withAPILogging, logSessionOperation, logValidationError, logRateLimitExceeded, getClientIP } from '@/lib/logger'
 
-// Helper function to get client IP
-function getClientIP(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for')
-  const realIP = request.headers.get('x-real-ip')
-  const clientIP = request.headers.get('x-client-ip')
-
-  return forwarded?.split(',')[0]?.trim() ||
-         realIP ||
-         clientIP ||
-         'unknown'
-}
+// Note: getClientIP is now in logger.ts for reuse
 
 /**
  * GET /api/session?session_id={id}
  * Retrieves session data for editing
  */
-export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse<ReceiptData>>> {
-  const startTime = Date.now()
-  const url = new URL(request.url)
-  const userAgent = request.headers.get('user-agent') || undefined
-
+async function _GET(request: NextRequest): Promise<NextResponse<ApiResponse<ReceiptData>>> {
   // Apply rate limiting
   const rateLimitResult = await rateLimitMiddleware(request)
   if (!rateLimitResult.allowed) {
     logRateLimitExceeded(
       getClientIP(request),
-      url.pathname,
+      new URL(request.url).pathname,
       rateLimitResult.error?.retryAfter || 60
     )
 
-    const response = NextResponse.json(
+    return NextResponse.json(
       {
         error: rateLimitResult.error?.message || 'Rate limit exceeded',
         retryAfter: rateLimitResult.error?.retryAfter
@@ -48,9 +34,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
         }
       }
     )
-
-    logAPIRequest('GET', url.pathname, 429, Date.now() - startTime, userAgent, getClientIP(request))
-    return response
   }
 
   const { searchParams } = new URL(request.url)
@@ -60,7 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
     return NextResponse.json(
       { error: 'Missing session_id parameter' },
       { status: 400, headers: rateLimitResult.headers }
-    )
+    ) as NextResponse<ApiResponse<ReceiptData>>
   }
 
   try {
@@ -71,49 +54,27 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
     if (!session) {
       logSessionOperation('read', sessionId, undefined, false, 'Session not found')
 
-      const response = NextResponse.json(
+      return NextResponse.json(
         { error: 'Session not found or expired' },
         { status: 404, headers: rateLimitResult.headers }
-      )
-
-      logAPIRequest('GET', url.pathname, 404, Date.now() - startTime, userAgent, getClientIP(request))
-      return response
+      ) as NextResponse<ApiResponse<ReceiptData>>
     }
 
     logSessionOperation('read', sessionId, undefined, true)
 
-    const response = NextResponse.json(
+    return NextResponse.json(
       { data: session.data },
       { headers: rateLimitResult.headers }
-    )
-
-    logAPIRequest('GET', url.pathname, 200, Date.now() - startTime, userAgent, getClientIP(request))
-    return response
+    ) as NextResponse<ApiResponse<ReceiptData>>
   } catch (error) {
     console.error('GET /api/session error:', error)
 
-    // Handle validation errors specifically
-    if (error instanceof Error && error.message.includes('Invalid session ID')) {
-      logValidationError('sessionId', sessionIdParam, error.message)
-
-      const response = NextResponse.json(
-        { error: error.message },
-        { status: 400, headers: rateLimitResult.headers }
-      )
-
-      logAPIRequest('GET', url.pathname, 400, Date.now() - startTime, userAgent, getClientIP(request))
-      return response
-    }
-
     logger.error('GET /api/session internal error:', { error: error instanceof Error ? error.message : 'Unknown error' })
 
-    const response = NextResponse.json(
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500, headers: rateLimitResult.headers }
-    )
-
-    logAPIRequest('GET', url.pathname, 500, Date.now() - startTime, userAgent, getClientIP(request))
-    return response
+    ) as NextResponse<ApiResponse<ReceiptData>>
   }
 }
 
@@ -121,21 +82,17 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
  * POST /api/session
  * Updates session data and marks it as ready for the bot
  */
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
-  const startTime = Date.now()
-  const url = new URL(request.url)
-  const userAgent = request.headers.get('user-agent') || undefined
-
+async function _POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   // Apply rate limiting
   const rateLimitResult = await rateLimitMiddleware(request)
   if (!rateLimitResult.allowed) {
     logRateLimitExceeded(
       getClientIP(request),
-      url.pathname,
+      new URL(request.url).pathname,
       rateLimitResult.error?.retryAfter || 60
     )
 
-    const response = NextResponse.json(
+    return NextResponse.json(
       {
         error: rateLimitResult.error?.message || 'Rate limit exceeded',
         retryAfter: rateLimitResult.error?.retryAfter
@@ -148,9 +105,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         }
       }
     )
-
-    logAPIRequest('POST', url.pathname, 429, Date.now() - startTime, userAgent, getClientIP(request))
-    return response
   }
 
   let body: any = {}
@@ -166,61 +120,43 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       return NextResponse.json(
         { error: 'Missing required fields: session_id and data' },
         { status: 400, headers: rateLimitResult.headers }
-      )
+      ) as NextResponse<ApiResponse>
     }
 
     // Validate session ID format
     const validSessionId = validateSessionId(session_id)
 
-    // Validate receipt data structure and content
-    const validationResult = safeValidateReceiptData(data)
-    if (!validationResult.success) {
-      logValidationError('receiptData', data, validationResult.error)
-
-      const response = NextResponse.json(
-        { error: `Invalid receipt data: ${validationResult.error}` },
+    // Validate receipt data early
+    try {
+      validateReceiptData(data)
+    } catch (validationError) {
+      logValidationError('receiptData', data, validationError instanceof Error ? validationError.message : 'Validation failed')
+      return NextResponse.json(
+        { error: `Invalid receipt data: ${validationError instanceof Error ? validationError.message : 'Validation failed'}` },
         { status: 400, headers: rateLimitResult.headers }
-      )
-
-      logAPIRequest('POST', url.pathname, 400, Date.now() - startTime, userAgent, getClientIP(request))
-      return response
+      ) as NextResponse<ApiResponse>
     }
 
-    // Update session with validated data
-    await sessionService.updateSession(validSessionId, validationResult.data)
+    // Update session with validated data (already validated above)
+    await sessionService.updateSession(validSessionId, data)
     logSessionOperation('update', validSessionId, undefined, true)
 
-    const response = NextResponse.json(
+    return NextResponse.json(
       { success: true },
       { headers: rateLimitResult.headers }
-    )
-
-    logAPIRequest('POST', url.pathname, 200, Date.now() - startTime, userAgent, getClientIP(request))
-    return response
+    ) as NextResponse<ApiResponse>
   } catch (error) {
     console.error('POST /api/session error:', error)
 
-    // Handle validation errors specifically
-    if (error instanceof Error && (error.message.includes('Invalid') || error.message.includes('receipt data'))) {
-      logValidationError('receiptData', data || body.data || 'unknown', error.message)
-
-      const response = NextResponse.json(
-        { error: error.message },
-        { status: 400, headers: rateLimitResult.headers }
-      )
-
-      logAPIRequest('POST', url.pathname, 400, Date.now() - startTime, userAgent, getClientIP(request))
-      return response
-    }
-
     logger.error('POST /api/session internal error:', { error: error instanceof Error ? error.message : 'Unknown error' })
 
-    const response = NextResponse.json(
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500, headers: rateLimitResult.headers }
-    )
-
-    logAPIRequest('POST', url.pathname, 500, Date.now() - startTime, userAgent, getClientIP(request))
-    return response
+    ) as NextResponse<ApiResponse>
   }
 }
+
+// Export wrapped functions with logging
+export const GET = withAPILogging(_GET)
+export const POST = withAPILogging(_POST)
