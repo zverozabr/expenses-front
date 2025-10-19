@@ -48,7 +48,16 @@ async function _GET(request: NextRequest): Promise<NextResponse<ApiResponse<Rece
 
   try {
     // Validate session ID format
-    const sessionId = validateSessionId(sessionIdParam)
+    let sessionId: string
+    try {
+      sessionId = validateSessionId(sessionIdParam)
+    } catch (validationError) {
+      logValidationError('sessionId', sessionIdParam, validationError instanceof Error ? validationError.message : 'Invalid session ID format')
+      return NextResponse.json(
+        { error: validationError instanceof Error ? validationError.message : 'Invalid session ID format' },
+        { status: 400, headers: rateLimitResult.headers }
+      ) as NextResponse<ApiResponse<ReceiptData>>
+    }
 
     const session = await sessionService.getSession(sessionId)
     if (!session) {
@@ -124,7 +133,16 @@ async function _POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
     }
 
     // Validate session ID format
-    const validSessionId = validateSessionId(session_id)
+    let validSessionId: string
+    try {
+      validSessionId = validateSessionId(session_id)
+    } catch (validationError) {
+      logValidationError('sessionId', session_id, validationError instanceof Error ? validationError.message : 'Invalid session ID format')
+      return NextResponse.json(
+        { error: validationError instanceof Error ? validationError.message : 'Invalid session ID format' },
+        { status: 400, headers: rateLimitResult.headers }
+      ) as NextResponse<ApiResponse>
+    }
 
     // Validate receipt data early
     try {
