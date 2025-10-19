@@ -1,5 +1,6 @@
 import winston from 'winston'
 import path from 'path'
+import { NextRequest, NextResponse } from 'next/server'
 
 // Define log levels
 const levels = {
@@ -77,6 +78,51 @@ export const logger = winston.createLogger({
 })
 
 // Helper functions for different log types
+/**
+ * Higher-order function for API route logging
+ * Eliminates DRY violations in API routes and improves maintainability
+ */
+export function withAPILogging(
+  handler: (request: NextRequest) => Promise<NextResponse>
+): (request: NextRequest) => Promise<NextResponse> {
+  return async (request: NextRequest): Promise<NextResponse> => {
+    const startTime = Date.now()
+    const url = new URL(request.url)
+    const userAgent = request.headers.get('user-agent') || undefined
+
+    try {
+      const response = await handler(request)
+      const duration = Date.now() - startTime
+
+      // Extract status from response if possible
+      const status = (response as any).status || 200
+      const ip = getClientIP(request)
+
+      logAPIRequest(request.method, url.pathname, status, duration, userAgent, ip)
+      return response
+    } catch (error) {
+      const duration = Date.now() - startTime
+      const ip = getClientIP(request)
+
+      // Log the error and re-throw
+      logAPIRequest(request.method, url.pathname, 500, duration, userAgent, ip)
+      throw error
+    }
+  }
+}
+
+// Helper function for extracting client IP
+export function getClientIP(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for')
+  const realIP = request.headers.get('x-real-ip')
+  const clientIP = request.headers.get('x-client-ip')
+
+  return forwarded?.split(',')[0]?.trim() ||
+         realIP ||
+         clientIP ||
+         'unknown'
+}
+
 export const logAPIRequest = (
   method: string,
   url: string,
