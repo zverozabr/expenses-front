@@ -33,7 +33,7 @@ this.cache = new LRUCache({
         return cached
       }
 
-      const { rows } = await sql`
+      const rows = await sql`
         SELECT id, data, status
         FROM sessions
         WHERE id = ${sessionId}
