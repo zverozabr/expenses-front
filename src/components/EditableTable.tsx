@@ -20,7 +20,11 @@ export const EditableTable = memo(function EditableTable({
   useEffect(() => {
     if (!tableRef.current) return
 
-    const columns = data.length > 0 ? Object.keys(data[0]).map(key => {
+    // KISS: Don't initialize table until we have data
+    // This prevents creating a table without columns
+    if (data.length === 0) return
+
+    const columns = Object.keys(data[0]).map(key => {
       // Define responsive priorities (lower number = higher priority, 0 = never hide)
       const responsivePriority = {
         '#': 0,      // Always show
@@ -45,13 +49,13 @@ export const EditableTable = memo(function EditableTable({
         responsive: responsivePriority,
         minWidth: key === 'Item' ? 120 : undefined, // Ensure Item column has minimum width
       }
-    }) : []
+    })
 
     const config: any = {
-      data: data.length > 0 ? data : [],
+      data: data,
       columns: [
         // Add checkbox column for row selection
-        ...(data.length > 0 ? [{
+        {
           formatter: 'rowSelection',
           titleFormatter: 'rowSelection',
           hozAlign: 'center',
@@ -60,7 +64,7 @@ export const EditableTable = memo(function EditableTable({
           cellClick: function(e: any, cell: any) {
             cell.getRow().toggleSelect()
           }
-        }] : []),
+        },
         ...columns
       ],
       layout: 'fitDataTable', // Better for mobile - fits data to screen
@@ -93,25 +97,20 @@ export const EditableTable = memo(function EditableTable({
       tooltips: true,
     }
 
+    // Destroy existing table if it exists (for data structure changes)
+    if (tabulatorRef.current) {
+      tabulatorRef.current.destroy()
+    }
+
     tabulatorRef.current = new Tabulator(tableRef.current, config)
 
     return () => {
       if (tabulatorRef.current) {
         tabulatorRef.current.destroy()
+        tabulatorRef.current = null
       }
     }
-  }, []) // Initialize only once
-
-  // Update data when it changes
-  useEffect(() => {
-    if (tabulatorRef.current) {
-      if (data.length > 0) {
-        tabulatorRef.current.replaceData(data)
-      } else {
-        tabulatorRef.current.clearData()
-      }
-    }
-  }, [data])
+  }, [data.length]) // Re-initialize when data length changes (structure change)
 
   const handleSave = useCallback(async () => {
     if (tabulatorRef.current && onDataChange) {

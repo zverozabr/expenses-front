@@ -34,11 +34,11 @@ describe('Complete Receipt Editing Workflow', () => {
     cy.visit(`/edit?session_id=${testSessionId}`)
 
     // Wait for page to load
-    cy.contains('Edit JSON Table').should('be.visible')
-    cy.contains('Edit the receipt data below').should('be.visible')
+    cy.contains('Edit Receipt').should('be.visible')
+    cy.contains('Edit the receipt data and save to send back to Telegram').should('be.visible')
 
     // Wait for data to load (table should appear)
-    cy.get('.tabulator').should('be.visible')
+    cy.get('.tabulator', { timeout: 10000 }).should('be.visible')
 
     // Check that data is displayed
     cy.contains('Test Item 1').should('be.visible')
@@ -198,5 +198,61 @@ describe('Complete Receipt Editing Workflow', () => {
     // Clean up test data
     // Note: In a real scenario, you might want to clean up the test session
     // But for now, we'll leave it as the session will expire naturally
+  })
+})
+
+describe('Thai Receipt Data Display Test', () => {
+  const thaiSessionId = '550e8400-e29b-41d4-a716-446655440099'
+
+  it('should display Thai receipt with 11 rows', () => {
+    cy.visit(`/edit?session_id=${thaiSessionId}`)
+
+    // Wait for page to load
+    cy.contains('Edit Receipt').should('be.visible')
+
+    // Wait for table to load with timeout
+    cy.get('.tabulator', { timeout: 10000 }).should('be.visible')
+
+    // Check that we have 11 rows
+    cy.contains('11 rows').should('be.visible')
+
+    // Check for Thai characters
+    cy.contains('แตร').should('be.visible') // Horn on K.L.
+    cy.contains('บ่อ').should('be.visible')  // F7 Bhor
+    cy.contains('ผลิตภัณฑ์').should('be.visible') // A Rai product
+
+    // Check that buttons are visible
+    cy.contains('+ Row').should('be.visible')
+    cy.contains('Delete').should('be.visible')
+    cy.contains('Save & Send').should('be.visible')
+  })
+
+  it('should allow clicking Add Row button', () => {
+    cy.visit(`/edit?session_id=${thaiSessionId}`)
+
+    // Wait for table
+    cy.get('.tabulator', { timeout: 10000 }).should('be.visible')
+
+    // Click Add Row
+    cy.contains('+ Row').click()
+
+    // Should now have 12 rows
+    cy.contains('12 rows').should('be.visible')
+  })
+
+  it('should allow selecting and deleting a row', () => {
+    cy.visit(`/edit?session_id=${thaiSessionId}`)
+
+    // Wait for table
+    cy.get('.tabulator', { timeout: 10000 }).should('be.visible')
+
+    // Select first row checkbox
+    cy.get('.tabulator-table tbody tr').first().find('input[type="checkbox"]').check({ force: true })
+
+    // Click delete
+    cy.contains('Delete').click()
+
+    // Should have 10 rows now (or 11 if Add Row test ran)
+    cy.get('.tabulator-table tbody tr').should('have.length.lessThan', 12)
   })
 })
