@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useCallback, memo } from 'react'
-import { Tabulator } from 'tabulator-tables'
+import React, { useEffect, useRef, useCallback, memo, useState } from 'react'
 import { EditableTableProps, ReceiptData } from '@/types'
 import { Button } from '@/components/ui/button'
+
+// Tabulator will be loaded dynamically on client side
+import type { Tabulator as TabulatorType } from 'tabulator-tables'
 
 /**
  * Editable table component using Tabulator.js
@@ -15,86 +17,48 @@ export const EditableTable = memo(function EditableTable({
   loading = false
 }: EditableTableProps) {
   const tableRef = useRef<HTMLDivElement>(null)
-  const tabulatorRef = useRef<Tabulator | null>(null)
+  const tabulatorRef = useRef<TabulatorType | null>(null)
+  const [Tabulator, setTabulator] = useState<any>(null)
+
+  // Load Tabulator dynamically on client side
+  useEffect(() => {
+    import('tabulator-tables').then((module) => {
+      setTabulator(() => module.TabulatorFull || module.Tabulator)
+    })
+  }, [])
 
   useEffect(() => {
-    if (!tableRef.current) return
+    if (!tableRef.current || !Tabulator) return
 
     // KISS: Don't initialize table until we have data
     // This prevents creating a table without columns
     if (data.length === 0) return
 
     const columns = Object.keys(data[0]).map(key => {
-      // Define responsive priorities (lower number = higher priority, 0 = never hide)
-      const responsivePriority = {
-        '#': 0,      // Always show
-        'Item': 0,   // Always show
-        'Qty': 0,    // Always show
-        'Price': 0,  // Always show
-        'Total': 0,  // Always show
-        'Unit': 1,   // Hide first on mobile
-        'Art': 1,    // Hide first on mobile
-        'Net': 2,    // Hide second on mobile
-        'VAT': 2,    // Hide second on mobile
-      }[key] || 0
-
       return {
         title: key,
         field: key,
         editor: key === 'Qty' || key === 'Price' || key === 'Net' || key === 'VAT' || key === 'Total'
           ? 'number'
           : key === '#' ? 'number' : 'input',
-        headerFilter: data.length > 10 ? 'input' : false, // Filters for larger datasets
         width: key === '#' ? 60 : key === 'Qty' || key === 'Unit' ? 80 : undefined,
-        responsive: responsivePriority,
         minWidth: key === 'Item' ? 120 : undefined, // Ensure Item column has minimum width
       }
     })
 
     const config: any = {
       data: data,
-      columns: [
-        // Add checkbox column for row selection
-        {
-          formatter: 'rowSelection',
-          titleFormatter: 'rowSelection',
-          hozAlign: 'center',
-          headerSort: false,
-          width: 40,
-          cellClick: function(e: any, cell: any) {
-            cell.getRow().toggleSelect()
-          }
-        },
-        ...columns
-      ],
-      layout: 'fitDataTable', // Better for mobile - fits data to screen
-      responsiveLayout: 'collapse', // Hide columns on small screens
-      responsiveLayoutCollapseStartOpen: false,
+      columns: columns,
+      layout: 'fitData',
       addRowPos: 'bottom',
-      reactiveData: true,
-      movableColumns: true,
-      resizableRows: true,
       placeholder: loading ? 'Loading...' : 'No data available',
-      selectableRows: true, // Enable row selection
-      selectableRowsCheck: true, // Show checkboxes
 
       // Performance optimizations for large datasets
       ...(data.length > 50 && {
-        virtualDom: 'viewport', // Virtual DOM for large tables with viewport scrolling
-        pagination: 'local',
+        height: '400px',
+        pagination: true,
         paginationSize: 50,
-        paginationSizeSelector: [25, 50, 100],
-        paginationCounter: 'rows',
-        paginationButtonCount: 5,
       }),
-
-      // Virtual DOM for smaller datasets too for smooth scrolling
-      ...(data.length > 10 && {
-        virtualDom: 'viewport',
-      }),
-
-      // Additional features for better UX
-      tooltips: true,
     }
 
     // Destroy existing table if it exists (for data structure changes)
@@ -110,7 +74,7 @@ export const EditableTable = memo(function EditableTable({
         tabulatorRef.current = null
       }
     }
-  }, [data.length]) // Re-initialize when data length changes (structure change)
+  }, [data.length, Tabulator]) // Re-initialize when data length changes or Tabulator loads
 
   const handleSave = useCallback(async () => {
     if (tabulatorRef.current && onDataChange) {
@@ -137,11 +101,14 @@ export const EditableTable = memo(function EditableTable({
   }, [data])
 
   const handleDeleteRow = useCallback(() => {
-    if (tabulatorRef.current) {
-      const selectedRows = tabulatorRef.current.getSelectedRows()
-      selectedRows.forEach(row => row.delete())
+    if (tabulatorRef.current && data.length > 0) {
+      // Delete last row for simplicity
+      const rows = tabulatorRef.current.getRows()
+      if (rows.length > 0) {
+        rows[rows.length - 1].delete()
+      }
     }
-  }, [])
+  }, [data])
 
   return (
     <div>
@@ -165,10 +132,10 @@ export const EditableTable = memo(function EditableTable({
             variant="destructive"
             size="sm"
             className="flex-1 sm:flex-none"
-            aria-label="Delete selected rows"
+            aria-label="Delete last row"
           >
-            <span className="hidden sm:inline">🗑️ Delete Selected</span>
-            <span className="sm:hidden">🗑️ Delete</span>
+            <span className="hidden sm:inline">Delete Last Row</span>
+            <span className="sm:hidden">Delete</span>
           </Button>
         </div>
         <span className="text-sm text-gray-600 self-center sm:self-start">

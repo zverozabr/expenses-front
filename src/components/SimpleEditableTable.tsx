@@ -12,9 +12,33 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+// Sort direction type
+type SortDirection = 'asc' | 'desc' | null
+
+// Chevron Down Icon for sorting
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
 /**
  * Simple editable table component using shadcn/ui Table
  * Mobile-optimized with horizontal and vertical scrolling
+ * Supports column sorting by clicking on headers
  */
 export const SimpleEditableTable = memo(function SimpleEditableTable({
   data: initialData,
@@ -22,22 +46,82 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   loading = false
 }: EditableTableProps) {
   const [data, setData] = useState<ReceiptData>(initialData)
+  const [originalData, setOriginalData] = useState<ReceiptData>(initialData)
+  const [sortColumn, setSortColumn] = useState<string | null>(null)
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null)
 
   // Update local state when prop changes
   React.useEffect(() => {
     setData(initialData)
+    setOriginalData(initialData)
+    setSortColumn(null)
+    setSortDirection(null)
   }, [initialData])
 
+  // Handle column sorting
+  const handleSort = useCallback((column: string) => {
+    let newDirection: SortDirection = 'asc'
+
+    if (sortColumn === column) {
+      if (sortDirection === 'asc') {
+        newDirection = 'desc'
+      } else if (sortDirection === 'desc') {
+        newDirection = null
+      }
+    }
+
+    setSortColumn(newDirection ? column : null)
+    setSortDirection(newDirection)
+
+    if (newDirection) {
+      const sorted = [...originalData].sort((a, b) => {
+        const aVal = a[column]
+        const bVal = b[column]
+
+        // Handle numeric fields
+        const numericFields = ['#', 'Qty', 'Price', 'Net', 'VAT', 'Total']
+        if (numericFields.includes(column)) {
+          const aNum = Number(aVal) || 0
+          const bNum = Number(bVal) || 0
+          return newDirection === 'asc' ? aNum - bNum : bNum - aNum
+        }
+
+        // Handle string fields
+        const aStr = String(aVal || '').toLowerCase()
+        const bStr = String(bVal || '').toLowerCase()
+        if (newDirection === 'asc') {
+          return aStr.localeCompare(bStr)
+        } else {
+          return bStr.localeCompare(aStr)
+        }
+      })
+      setData(sorted)
+    } else {
+      // Reset to original order
+      setData([...originalData])
+    }
+  }, [sortColumn, sortDirection, originalData])
+
   const handleCellChange = useCallback((rowIndex: number, field: string, value: string) => {
+    const numericFields = ['#', 'Qty', 'Price', 'Net', 'VAT', 'Total']
+    const newValue = numericFields.includes(field) ? Number(value) || 0 : value
+
     setData(prevData => {
       const newData = [...prevData]
-      const numericFields = ['#', 'Qty', 'Price', 'Net', 'VAT', 'Total']
-
       newData[rowIndex] = {
         ...newData[rowIndex],
-        [field]: numericFields.includes(field) ? Number(value) || 0 : value
+        [field]: newValue
       }
+      return newData
+    })
 
+    // Also update originalData to preserve edits when sorting
+    setOriginalData(prevData => {
+      const newData = [...prevData]
+      newData[rowIndex] = {
+        ...newData[rowIndex],
+        [field]: newValue
+      }
       return newData
     })
   }, [])
@@ -50,12 +134,14 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
       }, {} as any)
 
       setData(prevData => [...prevData, emptyRow])
+      setOriginalData(prevData => [...prevData, emptyRow])
     }
   }, [data])
 
   const handleDeleteLastRow = useCallback(() => {
     if (data.length > 0) {
       setData(prevData => prevData.slice(0, -1))
+      setOriginalData(prevData => prevData.slice(0, -1))
     }
   }, [data.length])
 
@@ -112,22 +198,36 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
       </div>
 
       {/* Table - Mobile-optimized with shadcn/ui components */}
-      <div className="border rounded-lg shadow-sm mb-4 overflow-hidden">
+      <div className="w-full border border-gray-200 dark:border-gray-800 rounded-lg shadow-md mb-4 overflow-hidden bg-white dark:bg-gray-950">
         <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '60vh' }}>
           <Table>
-            <TableHeader className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0 z-10">
-              <TableRow>
+            <TableHeader className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
+              <TableRow className="border-b border-gray-200 dark:border-gray-800">
                 {columns.map((column) => (
                   <TableHead
                     key={column}
-                    className="font-semibold text-gray-800 whitespace-nowrap text-xs sm:text-sm border-b-2 border-blue-200"
+                    className="h-12 px-4 text-left align-middle font-semibold text-gray-900 dark:text-gray-50 whitespace-nowrap text-xs sm:text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     style={{
-                      minWidth: column === 'Item' ? '180px' :
-                                column === '#' ? '50px' :
-                                ['Qty', 'Unit'].includes(column) ? '70px' : '90px'
+                      minWidth: column === 'Item' ? '200px' :
+                                column === '#' ? '60px' :
+                                ['Qty', 'Unit'].includes(column) ? '80px' :
+                                ['Price', 'Net', 'VAT', 'Total'].includes(column) ? '100px' : '120px'
                     }}
+                    onClick={() => handleSort(column)}
                   >
-                    {column}
+                    <div className="flex items-center gap-1">
+                      <span>{column}</span>
+                      {sortColumn === column && (
+                        <ChevronDownIcon
+                          className={`h-4 w-4 transition-transform ${
+                            sortDirection === 'desc' ? 'rotate-180' : ''
+                          }`}
+                        />
+                      )}
+                      {sortColumn !== column && (
+                        <ChevronDownIcon className="h-4 w-4 opacity-0 group-hover:opacity-50" />
+                      )}
+                    </div>
                   </TableHead>
                 ))}
               </TableRow>
@@ -136,20 +236,23 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
               {data.map((row, rowIndex) => (
                 <TableRow
                   key={rowIndex}
-                  className="hover:bg-blue-50 transition-colors"
+                  className="border-b border-gray-100 dark:border-gray-800 transition-colors hover:bg-gray-50 dark:hover:bg-gray-900/50"
                 >
                   {columns.map((column) => (
-                    <TableCell key={column} className="p-2">
+                    <TableCell key={column} className="px-4 py-3">
                       <input
                         type={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'number' : 'text'}
                         value={row[column] || ''}
                         onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
-                        className="w-full px-2 sm:px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base transition-all"
+                        className={`w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all ${
+                          column === 'Item' ? 'font-medium' : ''
+                        } ${
+                          ['Price', 'Net', 'VAT', 'Total'].includes(column) ? 'text-right' : ''
+                        }`}
                         style={{
-                          minWidth: column === 'Item' ? '170px' :
-                                    column === '#' ? '40px' :
-                                    ['Qty', 'Unit'].includes(column) ? '60px' : '80px',
-                          fontSize: column === 'Item' ? '14px' : '13px'
+                          minWidth: column === 'Item' ? '190px' :
+                                    column === '#' ? '50px' :
+                                    ['Qty', 'Unit'].includes(column) ? '70px' : '90px'
                         }}
                         step={['Price', 'Net', 'VAT', 'Total'].includes(column) ? '0.01' : '1'}
                         inputMode={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'decimal' : 'text'}
