@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import { useSessionData } from '@/hooks/useSessionData'
-import { EditableTable } from '@/components/EditableTable'
+import { SimpleEditableTable as EditableTable } from '@/components/SimpleEditableTable'
 import { usePWA } from '@/components/PWAProvider'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
