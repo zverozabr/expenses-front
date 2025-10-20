@@ -238,7 +238,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                     <TableCell key={column} className="p-2">
                       <input
                         type={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'number' : 'text'}
-                        value={row[column] || ''}
+                        value={row[column as keyof typeof row] || ''}
                         onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
                         className={`w-full px-2 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
                           column === 'Item' ? 'font-medium' : ''
