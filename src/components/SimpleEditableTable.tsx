@@ -198,15 +198,15 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
       </div>
 
       {/* Table - Mobile-optimized with shadcn/ui components */}
-      <div className="w-full border border-gray-200 dark:border-gray-800 rounded-lg shadow-md mb-4 overflow-hidden bg-white dark:bg-gray-950">
+      <div className="w-full rounded-md border mb-4 overflow-hidden">
         <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '60vh' }}>
           <Table>
-            <TableHeader className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
-              <TableRow className="border-b border-gray-200 dark:border-gray-800">
+            <TableHeader className="sticky top-0 z-10">
+              <TableRow>
                 {columns.map((column) => (
                   <TableHead
                     key={column}
-                    className="h-12 px-4 text-left align-middle font-semibold text-gray-900 dark:text-gray-50 whitespace-nowrap text-xs sm:text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-xs sm:text-sm cursor-pointer hover:bg-muted/50 transition-colors"
                     style={{
                       minWidth: column === 'Item' ? '200px' :
                                 column === '#' ? '60px' :
@@ -224,9 +224,6 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                           }`}
                         />
                       )}
-                      {sortColumn !== column && (
-                        <ChevronDownIcon className="h-4 w-4 opacity-0 group-hover:opacity-50" />
-                      )}
                     </div>
                   </TableHead>
                 ))}
@@ -236,15 +233,14 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
               {data.map((row, rowIndex) => (
                 <TableRow
                   key={rowIndex}
-                  className="border-b border-gray-100 dark:border-gray-800 transition-colors hover:bg-gray-50 dark:hover:bg-gray-900/50"
                 >
                   {columns.map((column) => (
-                    <TableCell key={column} className="px-4 py-3">
+                    <TableCell key={column} className="p-2">
                       <input
                         type={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'number' : 'text'}
                         value={row[column] || ''}
                         onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
-                        className={`w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-50 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all ${
+                        className={`w-full px-2 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
                           column === 'Item' ? 'font-medium' : ''
                         } ${
                           ['Price', 'Net', 'VAT', 'Total'].includes(column) ? 'text-right' : ''
