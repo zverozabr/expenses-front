@@ -75,8 +75,8 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
 
     if (newDirection) {
       const sorted = [...originalData].sort((a, b) => {
-        const aVal = a[column]
-        const bVal = b[column]
+        const aVal = a[column as keyof typeof a]
+        const bVal = b[column as keyof typeof b]
 
         // Handle numeric fields
         const numericFields = ['#', 'Qty', 'Price', 'Net', 'VAT', 'Total']
