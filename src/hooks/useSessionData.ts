@@ -159,7 +159,7 @@ export function useSessionData(sessionId: string | null): UseSessionDataReturn {
         console.log('📊 Loading demo data (database not available)')
         setData(demoData)
         setError(null) // Don't show error for demo mode
-        
+
         // Only show toast in development mode
         if (process.env.NODE_ENV === 'development') {
           toast({
@@ -201,7 +201,7 @@ export function useSessionData(sessionId: string | null): UseSessionDataReturn {
       }
     } catch (err) {
       console.log('💾 Demo mode: saving locally (database not available)')
-      
+
       // For demo purposes, just show success message in development
       if (process.env.NODE_ENV === 'development') {
         toast({

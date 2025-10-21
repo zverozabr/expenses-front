@@ -49,6 +49,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   const [originalData, setOriginalData] = useState<ReceiptData>(initialData)
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
 
   // Update local state when prop changes
   React.useEffect(() => {
@@ -56,6 +57,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
     setOriginalData(initialData)
     setSortColumn(null)
     setSortDirection(null)
+    setSelectedRows(new Set())
   }, [initialData])
 
   // Handle column sorting
@@ -138,12 +140,25 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
     }
   }, [data])
 
-  const handleDeleteLastRow = useCallback(() => {
-    if (data.length > 0) {
-      setData(prevData => prevData.slice(0, -1))
-      setOriginalData(prevData => prevData.slice(0, -1))
+  const handleToggleRow = useCallback((rowIndex: number) => {
+    setSelectedRows(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(rowIndex)) {
+        newSet.delete(rowIndex)
+      } else {
+        newSet.add(rowIndex)
+      }
+      return newSet
+    })
+  }, [])
+
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedRows.size > 0) {
+      setData(prevData => prevData.filter((_, index) => !selectedRows.has(index)))
+      setOriginalData(prevData => prevData.filter((_, index) => !selectedRows.has(index)))
+      setSelectedRows(new Set())
     }
-  }, [data.length])
+  }, [selectedRows])
 
   const handleSave = useCallback(async () => {
     if (onDataChange) {
@@ -181,15 +196,15 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
             <span className="sm:hidden">+ Row</span>
           </Button>
           <Button
-            onClick={handleDeleteLastRow}
-            disabled={data.length === 0}
+            onClick={handleDeleteSelected}
+            disabled={selectedRows.size === 0}
             variant="destructive"
             size="sm"
             className="flex-1 sm:flex-none"
-            aria-label="Delete last row"
+            aria-label="Delete selected rows"
           >
-            <span className="hidden sm:inline">Delete Last Row</span>
-            <span className="sm:hidden">Delete</span>
+            <span className="hidden sm:inline">Delete Selected ({selectedRows.size})</span>
+            <span className="sm:hidden">Delete ({selectedRows.size})</span>
           </Button>
         </div>
         <span className="text-sm text-gray-600 self-center sm:self-start">
@@ -203,6 +218,9 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
           <Table>
             <TableHeader className="sticky top-0 z-10">
               <TableRow>
+                <TableHead className="h-10 px-2 text-center align-middle font-medium whitespace-nowrap text-xs sm:text-sm w-10">
+                  ☑️
+                </TableHead>
                 {columns.map((column) => (
                   <TableHead
                     key={column}
@@ -233,7 +251,17 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
               {data.map((row, rowIndex) => (
                 <TableRow
                   key={rowIndex}
+                  className={selectedRows.has(rowIndex) ? 'bg-destructive/10' : ''}
                 >
+                  <TableCell className="p-2 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.has(rowIndex)}
+                      onChange={() => handleToggleRow(rowIndex)}
+                      className="w-4 h-4 cursor-pointer accent-destructive"
+                      aria-label={`Select row ${rowIndex + 1}`}
+                    />
+                  </TableCell>
                   {columns.map((column) => (
                     <TableCell key={column} className="p-2">
                       <input
