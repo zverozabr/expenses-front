@@ -2,8 +2,8 @@ describe('Complete Receipt Editing Workflow', () => {
   let testSessionId: string
 
   before(() => {
-    // Generate unique session ID for this test run
-    testSessionId = `test-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    // Generate unique UUID for this test run
+    testSessionId = crypto.randomUUID()
 
     // Create test session in database via API
     cy.request({
@@ -167,7 +167,7 @@ describe('Complete Receipt Editing Workflow', () => {
 
   it('should validate data before saving', () => {
     // First create a session with invalid data
-    const invalidSessionId = `invalid-data-${Date.now()}`
+    const invalidSessionId = crypto.randomUUID()
 
     cy.request({
       method: 'POST',
