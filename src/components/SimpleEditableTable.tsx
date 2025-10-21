@@ -131,7 +131,20 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   const handleAddRow = useCallback(() => {
     if (data.length > 0) {
       const emptyRow = Object.keys(data[0]).reduce((acc, key) => {
-        acc[key] = key === '#' ? data.length + 1 : ''
+        // Set default values that pass validation
+        if (key === '#') {
+          acc[key] = data.length + 1
+        } else if (key === 'Qty') {
+          acc[key] = 1 // Default quantity to 1 (must be positive)
+        } else if (key === 'Unit') {
+          acc[key] = 'pcs' // Default unit
+        } else if (key === 'Item') {
+          acc[key] = 'New Item' // Default item name (cannot be empty)
+        } else if (['Price', 'Net', 'VAT', 'Total'].includes(key)) {
+          acc[key] = 0 // Default numeric values to 0
+        } else {
+          acc[key] = '' // Other fields can be empty
+        }
         return acc
       }, {} as any)
 

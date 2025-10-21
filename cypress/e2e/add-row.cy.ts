@@ -73,13 +73,13 @@ describe('Add Row Functionality', () => {
     cy.get('table tbody tr').last().within(() => {
       // Edit Qty field
       cy.get('input').eq(1).clear().type('5')
-      
+
       // Edit Unit field
       cy.get('input').eq(2).clear().type('kg')
-      
+
       // Edit Price field
       cy.get('input').eq(3).clear().type('30')
-      
+
       // Edit Art field
       cy.get('input').eq(4).clear().type('NEW001')
     })
@@ -121,11 +121,11 @@ describe('Add Row Functionality', () => {
     cy.wait('@saveSession').then((interception) => {
       // Verify the request was successful
       expect(interception.response?.statusCode).to.eq(200)
-      
+
       // Verify the data includes 3 rows
       const requestData = interception.request.body.data
       expect(requestData).to.have.length(3)
-      
+
       // Verify the new row data
       const newRow = requestData[2]
       expect(newRow.Qty).to.eq('10')

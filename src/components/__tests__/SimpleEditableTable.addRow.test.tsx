@@ -59,13 +59,13 @@ describe('SimpleEditableTable - Add Row Functionality', () => {
 
     // Find all inputs and edit the new row (last row)
     const inputs = screen.getAllByRole('textbox')
-    
-    // Edit quantity field of the new row (should be empty initially)
-    const qtyInputs = inputs.filter(input => (input as HTMLInputElement).value === '')
-    if (qtyInputs.length > 0) {
-      const qtyInput = qtyInputs[0]
-      fireEvent.change(qtyInput, { target: { value: '10' } })
-      expect((qtyInput as HTMLInputElement).value).toBe('10')
+
+    // Edit item field of the new row (should have default value "New Item")
+    const itemInputs = inputs.filter(input => (input as HTMLInputElement).value === 'New Item')
+    if (itemInputs.length > 0) {
+      const itemInput = itemInputs[0]
+      fireEvent.change(itemInput, { target: { value: 'Updated Item' } })
+      expect((itemInput as HTMLInputElement).value).toBe('Updated Item')
     }
 
     // Save

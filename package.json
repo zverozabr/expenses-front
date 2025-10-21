@@ -7,9 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:e2e": "cypress run",
+    "test": "TMPDIR=./.tmp jest",
+    "test:watch": "TMPDIR=./.tmp jest --watch",
+    "test:e2e": "TMPDIR=./.tmp cypress run",
     "db:create": "docker exec postgres-local psql -U postgres -d telegram_editor -c \"CREATE TABLE IF NOT EXISTS sessions (id UUID PRIMARY KEY, data JSONB, status TEXT DEFAULT 'pending');\"",
     "db:reset": "docker exec postgres-local psql -U postgres -d telegram_editor -c \"DROP TABLE IF EXISTS sessions;\" && npm run db:create",
     "db:status": "docker ps | grep postgres-local"
