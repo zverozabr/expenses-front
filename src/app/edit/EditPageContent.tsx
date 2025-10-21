@@ -57,7 +57,7 @@ export function EditPageContent() {
   }
 
   return (
-    <div className="telegram-webapp p-2 sm:p-4 max-w-6xl mx-auto">
+    <div className="p-2 sm:p-4 max-w-6xl mx-auto">
       <header className="mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
           <div className="flex-1">

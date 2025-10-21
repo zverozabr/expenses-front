@@ -5,7 +5,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { PWAProvider } from '@/components/PWAProvider'
 import { DatabaseInitializer } from '@/components/DatabaseInitializer'
 import './globals.css'
-import '../styles/telegram-webapp.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
