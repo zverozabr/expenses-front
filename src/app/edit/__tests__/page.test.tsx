@@ -14,9 +14,13 @@ jest.mock('@/hooks/useSessionData', () => ({
   useSessionData: jest.fn(),
 }))
 
-// Mock EditableTable component
-jest.mock('@/components/EditableTable', () => ({
-  EditableTable: () => <div data-testid="editable-table">Mocked Table</div>,
+// Mock SimpleEditableTable component
+jest.mock('@/components/SimpleEditableTable', () => ({
+  SimpleEditableTable: ({ onDataChange }: { onDataChange: (data: any) => void }) => (
+    <div data-testid="editable-table">
+      <button onClick={() => onDataChange([{ test: 'data' }])}>Save</button>
+    </div>
+  ),
 }))
 
 import { useSessionData } from '@/hooks/useSessionData'
@@ -31,6 +35,16 @@ const renderWithPWAProvider = (component: React.ReactElement) => {
 describe('EditPage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+
+    // Mock Telegram WebApp API
+    Object.defineProperty(window, 'Telegram', {
+      writable: true,
+      value: {
+        WebApp: {
+          close: jest.fn(),
+        },
+      },
+    })
   })
 
   it('displays error', () => {
@@ -74,5 +88,42 @@ describe('EditPage', () => {
     expect(screen.getByText('Edit Receipt')).toBeInTheDocument()
     expect(screen.getByText('Edit the receipt data and save to send back to Telegram.')).toBeInTheDocument()
     // Note: Table component is mocked, so we don't test its internal rendering
+  })
+
+  it('closes Telegram WebApp after successful save', async () => {
+    const mockData = [{ name: 'John', age: 30 }]
+    const mockSaveData = jest.fn().mockResolvedValue(undefined)
+    const mockClose = jest.fn()
+
+    // Setup mocks
+    mockSearchParams.get.mockReturnValue('test-session')
+    mockUseSessionData.mockReturnValue({
+      data: mockData,
+      loading: false,
+      error: null,
+      saveData: mockSaveData,
+    })
+
+    Object.defineProperty(window, 'Telegram', {
+      writable: true,
+      value: {
+        WebApp: {
+          close: mockClose,
+        },
+      },
+    })
+
+    // Render component
+    renderWithPWAProvider(<EditPage />)
+
+    // Find and click save button
+    const saveButton = screen.getByText('Save')
+    await userEvent.click(saveButton)
+
+    // Wait for async operations
+    await waitFor(() => {
+      expect(mockSaveData).toHaveBeenCalledWith([{ test: 'data' }])
+      expect(mockClose).toHaveBeenCalled()
+    })
   })
 })
