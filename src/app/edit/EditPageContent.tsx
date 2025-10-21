@@ -1,12 +1,14 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
+import { useCallback } from 'react'
 import { useSessionData } from '@/hooks/useSessionData'
 import { SimpleEditableTable as EditableTable } from '@/components/SimpleEditableTable'
 import { usePWA } from '@/components/PWAProvider'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Wifi, WifiOff } from 'lucide-react'
+import { ReceiptData } from '@/types'
 
 /**
  * Content component for the edit page that uses search params
@@ -16,6 +18,16 @@ export function EditPageContent() {
   const sessionId = searchParams.get('session_id')
   const { data, loading, error, saveData } = useSessionData(sessionId)
   const { isInstallable, isOffline, installPWA } = usePWA()
+
+  // Wrap saveData to close Telegram WebApp after successful save
+  const handleSaveData = useCallback(async (newData: ReceiptData) => {
+    await saveData(newData)
+
+    // Close Telegram WebApp after successful save
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+      window.Telegram.WebApp.close()
+    }
+  }, [saveData])
 
   if (error) {
     return (
@@ -92,7 +104,7 @@ export function EditPageContent() {
       </header>
 
       <main>
-        <EditableTable data={data} onDataChange={saveData} loading={loading} />
+        <EditableTable data={data} onDataChange={handleSaveData} loading={loading} />
       </main>
     </div>
   )
