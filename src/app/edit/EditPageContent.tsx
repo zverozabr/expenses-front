@@ -25,7 +25,14 @@ export function EditPageContent() {
 
     // Close Telegram WebApp after successful save
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+      console.log('Closing Telegram WebApp...')
       window.Telegram.WebApp.close()
+    } else {
+      console.log('Telegram WebApp not available:', {
+        hasWindow: typeof window !== 'undefined',
+        hasTelegram: typeof window !== 'undefined' && !!window.Telegram,
+        hasWebApp: typeof window !== 'undefined' && !!window.Telegram?.WebApp
+      })
     }
   }, [saveData])
 
