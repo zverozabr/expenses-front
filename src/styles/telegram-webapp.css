@@ -1,0 +1,158 @@
+/* Telegram WebApp Safe Area and Mobile Optimizations */
+
+/* CSS Custom Properties for Telegram WebApp */
+:root {
+  /* Telegram WebApp Safe Area Insets */
+  --tg-safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --tg-safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --tg-safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --tg-safe-area-inset-right: env(safe-area-inset-right, 0px);
+
+  /* Content Safe Area (provided by Telegram) */
+  --tg-content-safe-area-inset-top: var(--tg-safe-area-inset-top);
+  --tg-content-safe-area-inset-bottom: var(--tg-safe-area-inset-bottom);
+  --tg-content-safe-area-inset-left: var(--tg-safe-area-inset-left);
+  --tg-content-safe-area-inset-right: var(--tg-safe-area-inset-right);
+
+  /* Telegram WebApp Colors */
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-text-color: #000000;
+  --tg-theme-hint-color: #999999;
+  --tg-theme-link-color: #2481cc;
+  --tg-theme-button-color: #2481cc;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f0f0f0;
+
+  /* Touch-friendly sizing */
+  --touch-target-min: 44px;
+  --mobile-font-size: 16px; /* Prevents zoom on iOS */
+}
+
+/* Telegram WebApp Container */
+.telegram-webapp {
+  padding-top: var(--tg-content-safe-area-inset-top);
+  padding-bottom: var(--tg-content-safe-area-inset-bottom);
+  padding-left: var(--tg-content-safe-area-inset-left);
+  padding-right: var(--tg-content-safe-area-inset-right);
+  min-height: 100vh;
+  background-color: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Mobile Table Optimizations */
+.mobile-table-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--tg-theme-bg-color);
+}
+
+/* Fixed columns container */
+.mobile-table-fixed {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: inherit;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Scrollable columns container */
+.mobile-table-scrollable {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Touch-friendly inputs */
+.telegram-input {
+  min-height: var(--touch-target-min);
+  font-size: var(--mobile-font-size);
+  border-radius: 6px;
+  border: 1px solid var(--tg-theme-hint-color);
+  background: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
+  padding: 8px 12px;
+  transition: border-color 0.2s ease;
+}
+
+.telegram-input:focus {
+  outline: none;
+  border-color: var(--tg-theme-link-color);
+  box-shadow: 0 0 0 2px rgba(36, 129, 204, 0.2);
+}
+
+/* Touch-friendly buttons */
+.telegram-button {
+  min-height: var(--touch-target-min);
+  padding: 12px 24px;
+  font-size: var(--mobile-font-size);
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  background: var(--tg-theme-button-color);
+  color: var(--tg-theme-button-text-color);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.telegram-button:hover {
+  opacity: 0.9;
+}
+
+.telegram-button:active {
+  transform: scale(0.98);
+}
+
+.telegram-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile scroll indicator */
+.mobile-scroll-hint {
+  text-align: center;
+  padding: 8px;
+  font-size: 12px;
+  color: var(--tg-theme-hint-color);
+  background: var(--tg-theme-secondary-bg-color);
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+/* Responsive breakpoints for Telegram */
+@media (max-width: 480px) {
+  .telegram-webapp {
+    font-size: 14px;
+  }
+
+  .telegram-input {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .telegram-button {
+    width: 100%;
+    font-size: 16px;
+  }
+}
+
+/* Hide scrollbar on mobile but keep functionality */
+.mobile-table-scrollable::-webkit-scrollbar {
+  height: 4px;
+}
+
+.mobile-table-scrollable::-webkit-scrollbar-track {
+  background: var(--tg-theme-secondary-bg-color);
+}
+
+.mobile-table-scrollable::-webkit-scrollbar-thumb {
+  background: var(--tg-theme-hint-color);
+  border-radius: 2px;
+}
+
+.mobile-table-scrollable::-webkit-scrollbar-thumb:hover {
+  background: var(--tg-theme-link-color);
+}

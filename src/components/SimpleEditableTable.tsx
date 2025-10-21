@@ -165,6 +165,10 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
 
   const columns = Object.keys(data[0])
 
+  // Группировка колонок для мобильной оптимизации
+  const fixedColumns = ['#', 'Item', 'Qty', 'Total'] // Всегда видимые на мобильных
+  const scrollableColumns = columns.filter(col => !fixedColumns.includes(col)) // Прокручиваемые
+
   return (
     <div className="w-full">
       {/* Table Controls */}
@@ -197,68 +201,177 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
         </span>
       </div>
 
-      {/* Table - Mobile-optimized with shadcn/ui components */}
-      <div className="w-full rounded-md border mb-4 overflow-hidden">
-        <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '60vh' }}>
-          <Table>
-            <TableHeader className="sticky top-0 z-10">
-              <TableRow>
-                {columns.map((column) => (
-                  <TableHead
-                    key={column}
-                    className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-xs sm:text-sm cursor-pointer hover:bg-muted/50 transition-colors"
-                    style={{
-                      minWidth: column === 'Item' ? '200px' :
-                                column === '#' ? '60px' :
-                                ['Qty', 'Unit'].includes(column) ? '80px' :
-                                ['Price', 'Net', 'VAT', 'Total'].includes(column) ? '100px' : '120px'
-                    }}
-                    onClick={() => handleSort(column)}
-                  >
-                    <div className="flex items-center gap-1">
-                      <span>{column}</span>
-                      {sortColumn === column && (
-                        <ChevronDownIcon
-                          className={`h-4 w-4 transition-transform ${
-                            sortDirection === 'desc' ? 'rotate-180' : ''
-                          }`}
-                        />
-                      )}
-                    </div>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((row, rowIndex) => (
-                <TableRow
-                  key={rowIndex}
-                >
+      {/* Mobile-Optimized Table with Fixed and Scrollable Columns */}
+      <div className="w-full rounded-md border mb-4 overflow-hidden bg-background">
+        {/* Desktop View - Full table with sorting */}
+        <div className="hidden sm:block">
+          <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '60vh' }}>
+            <Table>
+              <TableHeader className="sticky top-0 z-10">
+                <TableRow>
                   {columns.map((column) => (
-                    <TableCell key={column} className="p-2">
-                      <input
-                        type={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'number' : 'text'}
-                        value={row[column as keyof typeof row] || ''}
-                        onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
-                        className={`w-full px-2 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
-                          column === 'Item' ? 'font-medium' : ''
-                        } ${
-                          ['Price', 'Net', 'VAT', 'Total'].includes(column) ? 'text-right' : ''
-                        }`}
-                        style={{
-                          minWidth: column === 'Item' ? '190px' :
-                                    column === '#' ? '50px' :
-                                    ['Qty', 'Unit'].includes(column) ? '70px' : '90px'
-                        }}
-                        step={['Price', 'Net', 'VAT', 'Total'].includes(column) ? '0.01' : '1'}
-                        inputMode={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'decimal' : 'text'}
-                      />
-                    </TableCell>
+                    <TableHead
+                      key={column}
+                      className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-xs sm:text-sm cursor-pointer hover:bg-muted/50 transition-colors"
+                      style={{
+                        minWidth: column === 'Item' ? '200px' :
+                                  column === '#' ? '60px' :
+                                  ['Qty', 'Unit'].includes(column) ? '80px' :
+                                  ['Price', 'Net', 'VAT', 'Total'].includes(column) ? '100px' : '120px'
+                      }}
+                      onClick={() => handleSort(column)}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>{column}</span>
+                        {sortColumn === column && (
+                          <ChevronDownIcon
+                            className={`h-4 w-4 transition-transform ${
+                              sortDirection === 'desc' ? 'rotate-180' : ''
+                            }`}
+                          />
+                        )}
+                      </div>
+                    </TableHead>
                   ))}
                 </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((row, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {columns.map((column) => (
+                      <TableCell key={column} className="p-2">
+                        <input
+                          type={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'number' : 'text'}
+                          value={row[column as keyof typeof row] || ''}
+                          onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
+                          className={`w-full px-2 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
+                            column === 'Item' ? 'font-medium' : ''
+                          } ${
+                            ['Price', 'Net', 'VAT', 'Total'].includes(column) ? 'text-right' : ''
+                          }`}
+                          style={{
+                            minWidth: column === 'Item' ? '190px' :
+                                      column === '#' ? '50px' :
+                                      ['Qty', 'Unit'].includes(column) ? '70px' : '90px'
+                          }}
+                          step={['Price', 'Net', 'VAT', 'Total'].includes(column) ? '0.01' : '1'}
+                          inputMode={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'decimal' : 'text'}
+                        />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        {/* Mobile View - Fixed + Scrollable columns */}
+        <div className="sm:hidden">
+          {/* Header */}
+          <div className="bg-muted/50 border-b sticky top-0 z-20">
+            <div className="flex min-w-max">
+              {/* Fixed columns header */}
+              {fixedColumns.map((column) => (
+                <div
+                  key={column}
+                  className="px-2 py-3 text-left font-medium text-xs border-r border-border flex-shrink-0"
+                  style={{
+                    minWidth: column === 'Item' ? '140px' :
+                             column === '#' ? '40px' :
+                             column === 'Qty' ? '60px' : '80px',
+                    width: column === 'Item' ? '140px' :
+                           column === '#' ? '40px' :
+                           column === 'Qty' ? '60px' : '80px'
+                  }}
+                >
+                  {column}
+                </div>
               ))}
-            </TableBody>
-          </Table>
+              {/* Scrollable columns header */}
+              {scrollableColumns.map((column) => (
+                <div
+                  key={column}
+                  className="px-2 py-3 text-left font-medium text-xs border-r border-border flex-shrink-0 whitespace-nowrap"
+                  style={{
+                    minWidth: column === 'Unit' ? '60px' :
+                             column === 'Price' ? '80px' :
+                             column === 'Art' ? '100px' : '70px',
+                    width: column === 'Unit' ? '60px' :
+                           column === 'Price' ? '80px' :
+                           column === 'Art' ? '100px' : '70px'
+                  }}
+                >
+                  {column}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="max-h-[50vh] overflow-y-auto">
+            {data.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex min-w-max border-b border-border hover:bg-muted/30 transition-colors">
+                {/* Fixed columns */}
+                {fixedColumns.map((column) => (
+                  <div
+                    key={column}
+                    className="px-2 py-2 border-r border-border flex-shrink-0"
+                    style={{
+                      minWidth: column === 'Item' ? '140px' :
+                               column === '#' ? '40px' :
+                               column === 'Qty' ? '60px' : '80px',
+                      width: column === 'Item' ? '140px' :
+                             column === '#' ? '40px' :
+                             column === 'Qty' ? '60px' : '80px'
+                    }}
+                  >
+                    <input
+                      type={['#', 'Qty', 'Total'].includes(column) ? 'number' : 'text'}
+                      value={row[column as keyof typeof row] || ''}
+                      onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
+                      className={`w-full px-1 py-1 text-xs border rounded bg-background focus:outline-none focus:ring-1 focus:ring-ring transition-all ${
+                        column === 'Item' ? 'font-medium' : ''
+                      } ${
+                        ['Total'].includes(column) ? 'text-right' : ''
+                      }`}
+                      style={{ minHeight: '32px' }}
+                      step={['Total'].includes(column) ? '0.01' : '1'}
+                      inputMode={['#', 'Qty', 'Total'].includes(column) ? 'decimal' : 'text'}
+                    />
+                  </div>
+                ))}
+
+                {/* Scrollable columns */}
+                {scrollableColumns.map((column) => (
+                  <div
+                    key={column}
+                    className="px-2 py-2 border-r border-border flex-shrink-0"
+                    style={{
+                      minWidth: column === 'Unit' ? '60px' :
+                               column === 'Price' ? '80px' :
+                               column === 'Art' ? '100px' : '70px',
+                      width: column === 'Unit' ? '60px' :
+                             column === 'Price' ? '80px' :
+                             column === 'Art' ? '100px' : '70px'
+                    }}
+                  >
+                    <input
+                      type={['Price', 'Net', 'VAT'].includes(column) ? 'number' : 'text'}
+                      value={row[column as keyof typeof row] || ''}
+                      onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
+                      className={`w-full px-1 py-1 text-xs border rounded bg-background focus:outline-none focus:ring-1 focus:ring-ring transition-all ${
+                        ['Price', 'Net', 'VAT'].includes(column) ? 'text-right' : ''
+                      }`}
+                      style={{ minHeight: '32px' }}
+                      step={['Price', 'Net', 'VAT'].includes(column) ? '0.01' : '1'}
+                      inputMode={['Price', 'Net', 'VAT'].includes(column) ? 'decimal' : 'text'}
+                    />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

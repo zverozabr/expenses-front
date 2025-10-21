@@ -123,5 +123,17 @@
     "importance": 10,
     "timestamp": 1760773772327,
     "lastModified": 1760774934315
+  },
+  "mobile-table-optimization": {
+    "content": "## Мобильная оптимизация таблицы товаров для Telegram WebApp\n\n### Проблема\nТаблица с товарами слишком широкая для мобильного экрана Telegram (типичный viewport 390x844px). Текущая таблица имеет 9 колонок, что невозможно отобразить без горизонтальной прокрутки.\n\n### Анализ данных\nТаблица содержит колонки по приоритету:\n1. **#** (номер позиции) - всегда видимый\n2. **Item** (наименование) - самая важная информация  \n3. **Qty** (количество) - ключевой параметр\n4. **Unit** (единица измерения) - контекст\n5. **Price** (цена) - для расчетов\n6. **Net** (сумма без НДС) - расчетная\n7. **VAT** (НДС) - налоговая информация\n8. **Art** (артикул) - справочная\n9. **Total** (итого) - конечный результат\n\n### Решение\nСоздать адаптивную таблицу с:\n- **Фиксированные колонки**: #, Item, Qty, Total (4 колонки всегда видимы)\n- **Прокручиваемые колонки**: Unit, Price, Net, VAT, Art (5 колонок в горизонтальной прокрутке)\n- **Sticky заголовок** для навигации\n- **Touch-friendly** размеры (минимум 44px для кнопок)\n- **Safe area** адаптация для Telegram WebApp\n\n### Техническая реализация\n```tsx\n// Мобильная таблица с группировкой колонок\n<div className=\"mobile-table-container\">\n  <div className=\"fixed-columns\">\n    {/* #, Item, Qty, Total */}\n  </div>\n  <div className=\"scrollable-columns\">\n    {/* Unit, Price, Net, VAT, Art */}\n  </div>\n</div>\n```\n\n### CSS переменные для Telegram\n```css\n:root {\n  --tg-content-safe-area-inset-top: env(safe-area-inset-top);\n  --tg-content-safe-area-inset-bottom: env(safe-area-inset-bottom);\n  /* ... */\n}\n```\n\n### Тестирование\n- Проверить в Telegram WebApp на разных устройствах\n- Тестировать горизонтальную прокрутку\n- Проверить touch-интерфейс\n- Валидировать расчеты в мобильном виде",
+    "tags": [
+      "mobile-optimization",
+      "telegram-webapp",
+      "table-responsive",
+      "touch-interface"
+    ],
+    "importance": 8,
+    "timestamp": 1761026874232,
+    "lastModified": 1761026874232
   }
 }
