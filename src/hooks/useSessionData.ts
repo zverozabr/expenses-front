@@ -146,68 +146,72 @@ export function useSessionData(sessionId: string | null): UseSessionDataReturn {
     }
 
     const fetchData = async () => {
-    try {
-    const response = await fetch(`/api/session?session_id=${sessionId}`)
-    if (!response.ok) {
-    throw new Error(`Failed to load data: ${response.status}`)
-    }
-    const result = await response.json()
-    setData(result.data || [])
-    setError(null)
-    } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
-    console.log('Database not available, loading demo data for development')
-    // Load demo data when database is not available
-    setData(demoData)
-    setError(null) // Don't show error for demo mode
-    // Optional: Show info toast instead of error
-    toast({
-        title: "Demo Mode",
-      description: "Database not available, showing demo data",
-      })
+      try {
+        const response = await fetch(`/api/session?session_id=${sessionId}`)
+        if (!response.ok) {
+          throw new Error(`Failed to load data: ${response.status}`)
+        }
+        const result = await response.json()
+        setData(result.data || [])
+        setError(null)
+      } catch (err) {
+        // Fallback to demo data when database is not available
+        console.log('📊 Loading demo data (database not available)')
+        setData(demoData)
+        setError(null) // Don't show error for demo mode
+        
+        // Only show toast in development mode
+        if (process.env.NODE_ENV === 'development') {
+          toast({
+            title: "Demo Mode",
+            description: "Database not available, showing demo data",
+          })
+        }
       } finally {
         setLoading(false)
       }
     }
 
     fetchData()
-  }, [sessionId])
+  }, [sessionId, toast])
 
   const saveData = useCallback(async (newData: ReceiptData) => {
-  if (!sessionId) return
+    if (!sessionId) return
 
-  try {
-  const response = await fetch('/api/session', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ session_id: sessionId, data: newData }),
-  })
+    try {
+      const response = await fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId, data: newData }),
+      })
 
-  if (!response.ok) {
-  const errorData = await response.json()
-  throw new Error(errorData.error || 'Save failed')
-  }
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Save failed')
+      }
 
-  const result = await response.json()
-  if (result.success) {
-  toast({
-  title: "Success!",
-  description: "Data validated, saved and sent back to bot!",
-  })
-  } else {
-  throw new Error('Unexpected response from server')
-  }
-  } catch (err) {
-  const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-  console.log('Database not available, saving locally for demo')
-  // For demo purposes, just show success message
-  toast({
-  title: "Demo Mode",
-    description: "Data saved locally (database not available)",
-  })
-    // Don't throw error for demo mode - just update local state
+      const result = await response.json()
+      if (result.success) {
+        toast({
+          title: "Success!",
+          description: "Data validated, saved and sent back to bot!",
+        })
+      } else {
+        throw new Error('Unexpected response from server')
+      }
+    } catch (err) {
+      console.log('💾 Demo mode: saving locally (database not available)')
+      
+      // For demo purposes, just show success message in development
+      if (process.env.NODE_ENV === 'development') {
+        toast({
+          title: "Demo Mode",
+          description: "Data saved locally (database not available)",
+        })
+      }
+      // Don't throw error for demo mode - just update local state silently
     }
-  }, [sessionId])
+  }, [sessionId, toast])
 
   return { data, loading, error, saveData }
 }

@@ -3,6 +3,7 @@ import { SessionData, ISessionService, ReceiptData } from '@/types'
 import { validateReceiptData, safeValidateReceiptData } from '@/lib/validation'
 import { logSessionOperation, logDatabaseError } from '@/lib/logger'
 import { LRUCache } from 'lru-cache'
+import { initDatabase } from './initDb'
 
 /**
  * Service class for managing session data in the database
@@ -11,6 +12,7 @@ import { LRUCache } from 'lru-cache'
  */
 export class SessionService implements ISessionService {
 private cache: LRUCache<string, SessionData>
+private dbInitialized: boolean = false
 
 constructor() {
 // Cache for 5 minutes, max 100 entries
@@ -18,6 +20,17 @@ this.cache = new LRUCache({
       max: 100,
       ttl: 5 * 60 * 1000, // 5 minutes
     })
+  }
+
+  /**
+   * Ensure database is initialized before operations
+   * Lazy initialization on first database access
+   */
+  private async ensureDatabase(): Promise<void> {
+    if (!this.dbInitialized) {
+      await initDatabase()
+      this.dbInitialized = true
+    }
   }
 
   /**
@@ -38,6 +51,9 @@ this.cache = new LRUCache({
     */
   async getSession(sessionId: string): Promise<SessionData | null> {
     try {
+      // Ensure database is initialized
+      await this.ensureDatabase()
+
       // Check cache first
       const cached = this.cache.get(sessionId)
       if (cached) {
@@ -82,6 +98,9 @@ this.cache = new LRUCache({
    */
   async updateSession(sessionId: string, data: ReceiptData): Promise<void> {
     try {
+      // Ensure database is initialized
+      await this.ensureDatabase()
+
       // Validate data before saving (double-check)
       validateReceiptData(data)
 
@@ -105,6 +124,9 @@ this.cache = new LRUCache({
    */
   async createSession(sessionId: string, data: ReceiptData): Promise<void> {
     try {
+      // Ensure database is initialized
+      await this.ensureDatabase()
+
       // Validate data before saving
       validateReceiptData(data)
 
@@ -128,6 +150,9 @@ this.cache = new LRUCache({
    */
   async upsertSession(sessionId: string, data: ReceiptData): Promise<void> {
     try {
+      // Ensure database is initialized
+      await this.ensureDatabase()
+
       // Validate data before saving (DRY: same validation as create/update)
       validateReceiptData(data)
 
