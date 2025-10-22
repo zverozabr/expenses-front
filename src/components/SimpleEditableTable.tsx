@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { recalculateRow } from '@/lib/calculations'
 
 // Sort direction type
 type SortDirection = 'asc' | 'desc' | null
@@ -108,24 +109,24 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
     const numericFields = ['#', 'Qty', 'Price', 'Net', 'VAT', 'Total']
     const newValue = numericFields.includes(field) ? Number(value) || 0 : value
 
-    setData(prevData => {
-      const newData = [...prevData]
-      newData[rowIndex] = {
-        ...newData[rowIndex],
-        [field]: newValue
-      }
-      return newData
-    })
+    // Determine if we should recalculate related fields
+    const shouldRecalculate = ['Qty', 'Price', 'Net', 'VAT', 'Total'].includes(field)
 
-    // Also update originalData to preserve edits when sorting
-    setOriginalData(prevData => {
+    // DRY: Single function to update a row with or without recalculation
+    const updateRow = (prevData: ReceiptData) => {
       const newData = [...prevData]
-      newData[rowIndex] = {
-        ...newData[rowIndex],
-        [field]: newValue
-      }
+      const currentRow = newData[rowIndex]
+
+      newData[rowIndex] = shouldRecalculate
+        ? recalculateRow(currentRow, field, newValue as number)
+        : { ...currentRow, [field]: newValue }
+
       return newData
-    })
+    }
+
+    // Update both data and originalData using the same logic
+    setData(updateRow)
+    setOriginalData(updateRow)
   }, [])
 
   const handleAddRow = useCallback(() => {
