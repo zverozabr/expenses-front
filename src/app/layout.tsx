@@ -28,6 +28,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Telegram WebApp SDK */}
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
         <link rel="apple-touch-icon" href="/icons/icon.svg" />
         <link rel="icon" href="/icons/icon.svg" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

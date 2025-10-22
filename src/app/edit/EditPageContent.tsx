@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useSessionData } from '@/hooks/useSessionData'
 import { SimpleEditableTable as EditableTable } from '@/components/SimpleEditableTable'
 import { usePWA } from '@/components/PWAProvider'
@@ -19,20 +19,47 @@ export function EditPageContent() {
   const { data, loading, error, saveData } = useSessionData(sessionId)
   const { isInstallable, isOffline, installPWA } = usePWA()
 
+  // Initialize Telegram WebApp
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp
+
+      // Initialize WebApp
+      tg.ready()
+
+      // Expand to full height
+      tg.expand()
+
+      console.log('Telegram WebApp initialized:', {
+        version: tg.version,
+        platform: tg.platform,
+        isExpanded: tg.isExpanded,
+        viewportHeight: tg.viewportHeight
+      })
+    } else {
+      console.log('Telegram WebApp not available (running in browser)')
+    }
+  }, [])
+
   // Wrap saveData to close Telegram WebApp after successful save
   const handleSaveData = useCallback(async (newData: ReceiptData) => {
-    await saveData(newData)
+    try {
+      await saveData(newData)
 
-    // Close Telegram WebApp after successful save
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-      console.log('Closing Telegram WebApp...')
-      window.Telegram.WebApp.close()
-    } else {
-      console.log('Telegram WebApp not available:', {
-        hasWindow: typeof window !== 'undefined',
-        hasTelegram: typeof window !== 'undefined' && !!window.Telegram,
-        hasWebApp: typeof window !== 'undefined' && !!window.Telegram?.WebApp
-      })
+      // Close Telegram WebApp after successful save
+      if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+        console.log('Closing Telegram WebApp...')
+
+        // Small delay to ensure toast is visible
+        setTimeout(() => {
+          window.Telegram.WebApp.close()
+        }, 500)
+      } else {
+        console.log('Telegram WebApp not available (running in browser)')
+      }
+    } catch (error) {
+      console.error('Failed to save data:', error)
+      // Don't close WebApp if save failed
     }
   }, [saveData])
 

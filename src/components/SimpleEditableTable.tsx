@@ -309,26 +309,31 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
         ← Swipe to see all columns →
       </div>
 
-      {/* Save Button */}
-      <Button
-        onClick={handleSave}
-        disabled={loading}
-        size="lg"
-        className="w-full sm:w-auto"
-        aria-label="Save changes and send data back to bot"
-      >
-        {loading ? (
-          <>
-            <span className="hidden sm:inline">💾 Saving...</span>
-            <span className="sm:hidden">💾 Saving...</span>
-          </>
-        ) : (
-          <>
-            <span className="hidden sm:inline">💾 Save & Send Back</span>
-            <span className="sm:hidden">💾 Save</span>
-          </>
-        )}
-      </Button>
+      {/* Spacer for sticky button */}
+      <div className="h-20 sm:h-0" />
+
+      {/* Save Button - Sticky at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg sm:relative sm:border-0 sm:shadow-none sm:p-0 sm:bg-transparent z-50">
+        <Button
+          onClick={handleSave}
+          disabled={loading}
+          size="lg"
+          className="w-full sm:w-auto"
+          aria-label="Save changes and send data back to bot"
+        >
+          {loading ? (
+            <>
+              <span className="hidden sm:inline">💾 Saving...</span>
+              <span className="sm:hidden">💾 Saving...</span>
+            </>
+          ) : (
+            <>
+              <span className="hidden sm:inline">💾 Save & Send Back</span>
+              <span className="sm:hidden">💾 Save</span>
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   )
 })
