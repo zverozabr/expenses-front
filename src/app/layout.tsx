@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import { Toaster } from '@/components/ui/toaster'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { PWAProvider } from '@/components/PWAProvider'
@@ -28,8 +29,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Telegram WebApp SDK */}
-        <script src="https://telegram.org/js/telegram-web-app.js"></script>
         <link rel="apple-touch-icon" href="/icons/icon.svg" />
         <link rel="icon" href="/icons/icon.svg" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -37,6 +36,11 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Receipt Editor" />
       </head>
       <body className={inter.className}>
+        {/* Telegram WebApp SDK - loaded before app initialization */}
+        <Script
+          src="https://telegram.org/js/telegram-web-app.js"
+          strategy="beforeInteractive"
+        />
         <PWAProvider>
           <ErrorBoundary>
             {children}
