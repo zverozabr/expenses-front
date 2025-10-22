@@ -36,10 +36,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Receipt Editor" />
       </head>
       <body className={inter.className}>
-        {/* Telegram WebApp SDK - loaded before app initialization */}
+        {/* Telegram WebApp SDK */}
         <Script
           src="https://telegram.org/js/telegram-web-app.js"
-          strategy="beforeInteractive"
+          strategy="lazyOnload"
         />
         <PWAProvider>
           <ErrorBoundary>
