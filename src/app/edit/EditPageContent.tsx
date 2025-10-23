@@ -53,7 +53,7 @@ export function EditPageContent() {
 
         // Small delay to ensure toast is visible
         setTimeout(() => {
-          window.Telegram.WebApp.close()
+          window.Telegram?.WebApp?.close()
         }, 500)
       } else {
         console.log('Telegram WebApp not available (running in browser)')
