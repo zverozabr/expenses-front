@@ -88,11 +88,20 @@ export function sendSessionIdToBot(sessionId: string | null | undefined): boolea
       return false
     }
 
+    const webApp = window.Telegram!.WebApp!
+
     // Send data to bot
-    // Note: sendData automatically closes the Mini App
-    window.Telegram!.WebApp!.sendData(data)
+    // Note: sendData should automatically close the Mini App, but we'll ensure it closes
+    webApp.sendData(data)
 
     console.log('Session ID sent to bot:', trimmedSessionId)
+
+    // Explicitly close the Mini App after sending data
+    // This ensures the app closes even if sendData doesn't auto-close
+    setTimeout(() => {
+      webApp.close()
+    }, 100)
+
     return true
   } catch (error) {
     console.error('Failed to send session ID to bot:', error)

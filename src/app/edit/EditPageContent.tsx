@@ -54,22 +54,10 @@ export function EditPageContent() {
         if (sent) {
           console.log('Session ID sent to bot, Mini App will close automatically')
         } else {
-          console.warn('Failed to send session ID to bot, closing manually')
-          // Fallback: close manually if sendData is not available
-          if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-            setTimeout(() => {
-              window.Telegram?.WebApp?.close()
-            }, 500)
-          }
+          console.warn('Failed to send session ID to bot')
         }
       } else {
         console.warn('No session ID available to send to bot')
-        // Close manually if no session ID
-        if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-          setTimeout(() => {
-            window.Telegram?.WebApp?.close()
-          }, 500)
-        }
       }
     } catch (error) {
       console.error('Failed to save data:', error)

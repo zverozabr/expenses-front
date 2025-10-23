@@ -101,8 +101,8 @@ describe('EditPage', () => {
     const mockSaveData = jest.fn().mockResolvedValue(undefined)
     const mockClose = jest.fn()
 
-    // Setup mocks
-    mockSearchParams.get.mockReturnValue('test-session')
+    // Setup mocks - use valid UUID format
+    mockSearchParams.get.mockReturnValue('550e8400-e29b-41d4-a716-446655440000')
     mockUseSessionData.mockReturnValue({
       data: mockData,
       loading: false,
@@ -117,6 +117,7 @@ describe('EditPage', () => {
           ready: jest.fn(),
           expand: jest.fn(),
           close: mockClose,
+          sendData: jest.fn(),
           version: '6.0',
           platform: 'unknown',
           isExpanded: false,

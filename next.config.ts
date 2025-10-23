@@ -27,7 +27,7 @@ function getGitCommitHash(): string {
 const nextConfig: NextConfig = {
   env: {
     // Use VERCEL_GIT_COMMIT_SHA if available, otherwise get from git or use 'dev'
-    NEXT_PUBLIC_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA || getGitCommitHash(),
+    NEXT_PUBLIC_GIT_COMMIT_SHA: getGitCommitHash(),
   },
   async headers() {
     return [
