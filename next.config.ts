@@ -3,6 +3,12 @@ import { execSync } from 'child_process';
 
 // Get git commit hash at build time
 function getGitCommitHash(): string {
+  // On Vercel, use VERCEL_GIT_COMMIT_SHA environment variable
+  if (process.env.VERCEL_GIT_COMMIT_SHA) {
+    return process.env.VERCEL_GIT_COMMIT_SHA;
+  }
+
+  // Locally, try to get from git
   try {
     return execSync('git rev-parse HEAD').toString().trim();
   } catch (error) {
