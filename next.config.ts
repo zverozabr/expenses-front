@@ -3,16 +3,20 @@ import { execSync } from 'child_process';
 
 // Get git commit hash at build time
 function getGitCommitHash(): string {
-  try {
-    // On Vercel, use VERCEL_GIT_COMMIT_SHA environment variable
-    if (process.env.VERCEL_GIT_COMMIT_SHA) {
-      console.log('Using VERCEL_GIT_COMMIT_SHA:', process.env.VERCEL_GIT_COMMIT_SHA);
-      return process.env.VERCEL_GIT_COMMIT_SHA;
-    }
+  // On Vercel, VERCEL_GIT_COMMIT_SHA is automatically available
+  // We need to check multiple possible env vars
+  const vercelHash = process.env.VERCEL_GIT_COMMIT_SHA ||
+                     process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA;
 
-    // Locally, try to get from git
+  if (vercelHash) {
+    console.log('Using Vercel git hash:', vercelHash);
+    return vercelHash;
+  }
+
+  // Locally, try to get from git
+  try {
     const hash = execSync('git rev-parse HEAD').toString().trim();
-    console.log('Using git hash:', hash);
+    console.log('Using local git hash:', hash);
     return hash;
   } catch (error) {
     console.warn('Failed to get git commit hash, using "dev":', error instanceof Error ? error.message : error);
@@ -22,7 +26,8 @@ function getGitCommitHash(): string {
 
 const nextConfig: NextConfig = {
   env: {
-    NEXT_PUBLIC_GIT_COMMIT_SHA: getGitCommitHash(),
+    // Use VERCEL_GIT_COMMIT_SHA if available, otherwise get from git or use 'dev'
+    NEXT_PUBLIC_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA || getGitCommitHash(),
   },
   async headers() {
     return [
