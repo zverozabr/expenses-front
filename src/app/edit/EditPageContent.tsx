@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Wifi, WifiOff } from 'lucide-react'
 import { ReceiptData } from '@/types'
 import { getAppVersion } from '@/lib/version'
+import { sendSessionIdToBot } from '@/lib/telegram'
 
 /**
  * Content component for the edit page that uses search params
@@ -42,27 +43,39 @@ export function EditPageContent() {
     }
   }, [])
 
-  // Wrap saveData to close Telegram WebApp after successful save
+  // Wrap saveData to send session ID to bot after successful save
   const handleSaveData = useCallback(async (newData: ReceiptData) => {
     try {
       await saveData(newData)
 
-      // Close Telegram WebApp after successful save
-      if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-        console.log('Closing Telegram WebApp...')
-
-        // Small delay to ensure toast is visible
-        setTimeout(() => {
-          window.Telegram?.WebApp?.close()
-        }, 500)
+      // Send session ID to bot (this will also close the Mini App)
+      if (sessionId) {
+        const sent = sendSessionIdToBot(sessionId)
+        if (sent) {
+          console.log('Session ID sent to bot, Mini App will close automatically')
+        } else {
+          console.warn('Failed to send session ID to bot, closing manually')
+          // Fallback: close manually if sendData is not available
+          if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+            setTimeout(() => {
+              window.Telegram?.WebApp?.close()
+            }, 500)
+          }
+        }
       } else {
-        console.log('Telegram WebApp not available (running in browser)')
+        console.warn('No session ID available to send to bot')
+        // Close manually if no session ID
+        if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+          setTimeout(() => {
+            window.Telegram?.WebApp?.close()
+          }, 500)
+        }
       }
     } catch (error) {
       console.error('Failed to save data:', error)
       // Don't close WebApp if save failed
     }
-  }, [saveData])
+  }, [saveData, sessionId])
 
   if (error) {
     return (
