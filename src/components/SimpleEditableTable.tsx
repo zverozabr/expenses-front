@@ -197,8 +197,8 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   return (
     <div className="w-full">
       {/* Table Controls */}
-      <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-2 sm:flex-wrap">
-        <div className="flex gap-2">
+      <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-2 sm:flex-wrap sm:items-center">
+        <div className="flex gap-2 flex-1">
           <Button
             onClick={handleAddRow}
             variant="default"
@@ -219,6 +219,25 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
           >
             <span className="hidden sm:inline">Delete Selected ({selectedRows.size})</span>
             <span className="sm:hidden">Delete ({selectedRows.size})</span>
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={loading}
+            size="sm"
+            className="flex-1 sm:flex-none sm:ml-auto"
+            aria-label="Save changes and send data back to bot"
+          >
+            {loading ? (
+              <>
+                <span className="hidden sm:inline">💾 Saving...</span>
+                <span className="sm:hidden">💾</span>
+              </>
+            ) : (
+              <>
+                <span className="hidden sm:inline">💾 Save & Send Back</span>
+                <span className="sm:hidden">💾 Save</span>
+              </>
+            )}
           </Button>
         </div>
         <span className="text-sm text-gray-600 self-center sm:self-start">
@@ -307,32 +326,6 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
       {/* Mobile scroll hint */}
       <div className="text-xs text-gray-500 text-center mb-2 sm:hidden">
         ← Swipe to see all columns →
-      </div>
-
-      {/* Spacer for sticky button */}
-      <div className="h-20 sm:h-0" />
-
-      {/* Save Button - Sticky at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg sm:relative sm:border-0 sm:shadow-none sm:p-0 sm:bg-transparent z-50">
-        <Button
-          onClick={handleSave}
-          disabled={loading}
-          size="lg"
-          className="w-full sm:w-auto"
-          aria-label="Save changes and send data back to bot"
-        >
-          {loading ? (
-            <>
-              <span className="hidden sm:inline">💾 Saving...</span>
-              <span className="sm:hidden">💾 Saving...</span>
-            </>
-          ) : (
-            <>
-              <span className="hidden sm:inline">💾 Save & Send Back</span>
-              <span className="sm:hidden">💾 Save</span>
-            </>
-          )}
-        </Button>
       </div>
     </div>
   )

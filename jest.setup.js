@@ -1,4 +1,9 @@
 import '@testing-library/jest-dom'
+import { TextEncoder, TextDecoder } from 'util'
+
+// Polyfill for TextEncoder/TextDecoder (required by pg module)
+global.TextEncoder = TextEncoder
+global.TextDecoder = TextDecoder
 
 // Mock setImmediate for winston
 global.setImmediate = global.setImmediate || ((fn, ...args) => setTimeout(fn, 0, ...args))

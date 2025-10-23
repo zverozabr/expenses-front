@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Wifi, WifiOff } from 'lucide-react'
 import { ReceiptData } from '@/types'
+import { getAppVersion } from '@/lib/version'
 
 /**
  * Content component for the edit page that uses search params
@@ -92,6 +93,13 @@ export function EditPageContent() {
 
   return (
     <div className="p-2 sm:p-4 max-w-6xl mx-auto">
+      {/* Version badge - top right corner */}
+      <div className="fixed top-2 right-2 z-50">
+        <span className="text-[10px] text-gray-400 font-mono bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200" title={`Git commit: ${process.env.NEXT_PUBLIC_GIT_COMMIT_SHA || 'dev'}`}>
+          {getAppVersion()}
+        </span>
+      </div>
+
       <header className="mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
           <div className="flex-1">

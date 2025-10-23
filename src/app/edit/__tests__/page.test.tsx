@@ -36,12 +36,18 @@ describe('EditPage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
 
-    // Mock Telegram WebApp API
+    // Mock Telegram WebApp API with all required methods
     Object.defineProperty(window, 'Telegram', {
       writable: true,
       value: {
         WebApp: {
+          ready: jest.fn(),
+          expand: jest.fn(),
           close: jest.fn(),
+          version: '6.0',
+          platform: 'unknown',
+          isExpanded: false,
+          viewportHeight: 600,
         },
       },
     })
@@ -108,7 +114,13 @@ describe('EditPage', () => {
       writable: true,
       value: {
         WebApp: {
+          ready: jest.fn(),
+          expand: jest.fn(),
           close: mockClose,
+          version: '6.0',
+          platform: 'unknown',
+          isExpanded: false,
+          viewportHeight: 600,
         },
       },
     })

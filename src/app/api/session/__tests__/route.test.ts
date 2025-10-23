@@ -1,9 +1,9 @@
+// Mock the service methods
+jest.mock('@/lib/sessionService')
+
 import { sessionService } from '@/lib/sessionService'
 import { makroReceiptJson, makroReceiptEditedJson, smallReceiptJson, invalidReceiptJson } from '@/test-data/receiptData'
 import { ReceiptData } from '@/types'
-
-// Mock the service methods
-jest.mock('@/lib/sessionService')
 
 const mockGetSession = sessionService.getSession as jest.MockedFunction<typeof sessionService.getSession>
 const mockUpdateSession = sessionService.updateSession as jest.MockedFunction<typeof sessionService.updateSession>
