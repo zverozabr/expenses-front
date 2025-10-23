@@ -20,9 +20,12 @@ function getGitCommitHash(): string {
   }
 }
 
+// Get commit hash at module load time
+const gitCommitHash = getGitCommitHash();
+
 const nextConfig: NextConfig = {
   env: {
-    NEXT_PUBLIC_GIT_COMMIT_SHA: getGitCommitHash(),
+    NEXT_PUBLIC_GIT_COMMIT_SHA: gitCommitHash,
   },
   async headers() {
     return [
