@@ -334,7 +334,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
       <div className="md:hidden space-y-3 mb-4">
         <Accordion type="multiple" className="w-full">
           {data.map((row, rowIndex) => {
-            const itemName = row['Item'] || row['name'] || `Item ${rowIndex + 1}`
+            const itemName = row['Item'] || `Item ${rowIndex + 1}`
             const total = row['Total'] || 0
             const rowNumber = row['#'] || rowIndex + 1
 
