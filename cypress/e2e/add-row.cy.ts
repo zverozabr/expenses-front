@@ -2,8 +2,8 @@ describe('Add Row Functionality', () => {
   let testSessionId: string
 
   before(() => {
-    // Generate unique session ID for this test run
-    testSessionId = `test-add-row-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    // Generate unique UUID for this test run
+    testSessionId = crypto.randomUUID()
 
     // Create test session with initial data
     cy.request({
@@ -12,8 +12,8 @@ describe('Add Row Functionality', () => {
       body: {
         session_id: testSessionId,
         data: [
-          { "#": "1", "Qty": "2", "Unit": "pcs", "Price": "50", "Art": "TEST001", "Item": "Test Item 1", "Net": "100", "VAT": "0", "Total": "100" },
-          { "#": "2", "Qty": "3", "Unit": "pcs", "Price": "25", "Art": "TEST002", "Item": "Test Item 2", "Net": "75", "VAT": "0", "Total": "75" }
+          { "#": 1, "Qty": 2, "Unit": "pcs", "Price": 50, "Art": "TEST001", "Item": "Test Item 1", "Net": 100, "VAT": 0, "Total": 100 },
+          { "#": 2, "Qty": 3, "Unit": "pcs", "Price": 25, "Art": "TEST002", "Item": "Test Item 2", "Net": 75, "VAT": 0, "Total": 75 }
         ]
       },
       failOnStatusCode: false
@@ -24,9 +24,25 @@ describe('Add Row Functionality', () => {
   })
 
   beforeEach(() => {
+    // Set desktop viewport to ensure table is visible
+    cy.viewport(1280, 720)
+
     cy.clearAllCookies()
     cy.clearAllLocalStorage()
     cy.clearAllSessionStorage()
+
+    // Reset session data to initial state before each test
+    cy.request({
+      method: 'POST',
+      url: '/api/session',
+      body: {
+        session_id: testSessionId,
+        data: [
+          { "#": 1, "Qty": 2, "Unit": "pcs", "Price": 50, "Art": "TEST001", "Item": "Test Item 1", "Net": 100, "VAT": 0, "Total": 100 },
+          { "#": 2, "Qty": 3, "Unit": "pcs", "Price": 25, "Art": "TEST002", "Item": "Test Item 2", "Net": 75, "VAT": 0, "Total": 75 }
+        ]
+      }
+    })
   })
 
   it('should display initial data with 2 rows', () => {
@@ -35,12 +51,13 @@ describe('Add Row Functionality', () => {
     // Wait for page to load
     cy.contains('Edit Receipt', { timeout: 10000 }).should('be.visible')
 
-    // Check row count
-    cy.contains('2 rows').should('be.visible')
+    // Check row count - this ensures data is loaded
+    cy.contains('2 rows', { timeout: 10000 }).should('be.visible')
 
-    // Verify data is displayed
-    cy.contains('Test Item 1').should('be.visible')
-    cy.contains('Test Item 2').should('be.visible')
+    // Verify data is displayed in the table
+    cy.get('table tbody tr', { timeout: 10000 }).should('have.length', 2)
+    cy.get('table').contains('Test Item 1', { timeout: 10000 }).should('be.visible')
+    cy.get('table').contains('Test Item 2').should('be.visible')
   })
 
   it('should add a new row when clicking Add Row button', () => {
@@ -71,25 +88,28 @@ describe('Add Row Functionality', () => {
 
     // Find the last row and edit its fields
     cy.get('table tbody tr').last().within(() => {
-      // Edit Qty field
-      cy.get('input').eq(1).clear().type('5')
+      // Skip checkbox (index 0), start from index 1 for data fields
+      // Index 1 = #, Index 2 = Qty, Index 3 = Unit, Index 4 = Price, Index 5 = Art
 
-      // Edit Unit field
-      cy.get('input').eq(2).clear().type('kg')
+      // Edit Qty field (index 2)
+      cy.get('input[type="number"]').eq(1).click().type('{selectall}').type('5')
 
-      // Edit Price field
-      cy.get('input').eq(3).clear().type('30')
+      // Edit Unit field (index 3)
+      cy.get('input[type="text"]').eq(0).click().type('{selectall}').type('kg')
 
-      // Edit Art field
-      cy.get('input').eq(4).clear().type('NEW001')
+      // Edit Price field (index 4)
+      cy.get('input[type="number"]').eq(2).click().type('{selectall}').type('30')
+
+      // Edit Art field (index 5)
+      cy.get('input[type="text"]').eq(1).click().type('{selectall}').type('NEW001')
     })
 
     // Verify the changes
     cy.get('table tbody tr').last().within(() => {
-      cy.get('input').eq(1).should('have.value', '5')
-      cy.get('input').eq(2).should('have.value', 'kg')
-      cy.get('input').eq(3).should('have.value', '30')
-      cy.get('input').eq(4).should('have.value', 'NEW001')
+      cy.get('input[type="number"]').eq(1).should('have.value', '5')
+      cy.get('input[type="text"]').eq(0).should('have.value', 'kg')
+      cy.get('input[type="number"]').eq(2).should('have.value', '30')
+      cy.get('input[type="text"]').eq(1).should('have.value', 'NEW001')
     })
   })
 
@@ -105,10 +125,10 @@ describe('Add Row Functionality', () => {
 
     // Edit the new row
     cy.get('table tbody tr').last().within(() => {
-      cy.get('input').eq(1).clear().type('10')
-      cy.get('input').eq(2).clear().type('pcs')
-      cy.get('input').eq(3).clear().type('15')
-      cy.get('input').eq(4).clear().type('SAVED001')
+      cy.get('input[type="number"]').eq(1).click().type('{selectall}').type('10')
+      cy.get('input[type="text"]').eq(0).click().type('{selectall}').type('pcs')
+      cy.get('input[type="number"]').eq(2).click().type('{selectall}').type('15')
+      cy.get('input[type="text"]').eq(1).click().type('{selectall}').type('SAVED001')
     })
 
     // Intercept the save request
@@ -128,9 +148,9 @@ describe('Add Row Functionality', () => {
 
       // Verify the new row data
       const newRow = requestData[2]
-      expect(newRow.Qty).to.eq('10')
+      expect(newRow.Qty).to.eq(10)
       expect(newRow.Unit).to.eq('pcs')
-      expect(newRow.Price).to.eq('15')
+      expect(newRow.Price).to.eq(15)
       expect(newRow.Art).to.eq('SAVED001')
     })
   })
@@ -148,21 +168,24 @@ describe('Add Row Functionality', () => {
     // Edit the new row with unique identifier
     const uniqueId = `PERSIST-${Date.now()}`
     cy.get('table tbody tr').last().within(() => {
-      cy.get('input').eq(4).clear().type(uniqueId)
+      cy.get('input[type="text"]').eq(1).click().type('{selectall}').type(uniqueId)
     })
+
+    // Intercept save request to ensure it completes
+    cy.intercept('POST', '/api/session').as('saveSession')
 
     // Save
     cy.contains('button', 'Save').click()
 
-    // Wait a bit for save to complete
-    cy.wait(1000)
+    // Wait for save to complete
+    cy.wait('@saveSession').its('response.statusCode').should('eq', 200)
 
     // Reload the page
     cy.reload()
 
     // Verify data persisted
     cy.contains('3 rows', { timeout: 10000 }).should('be.visible')
-    cy.contains(uniqueId).should('be.visible')
+    cy.get('table').contains(uniqueId, { timeout: 10000 }).should('be.visible')
   })
 
   it('should allow adding multiple rows sequentially', () => {
@@ -199,7 +222,7 @@ describe('Add Row Functionality', () => {
 
     // Check that the new row has # = 3
     cy.get('table tbody tr').eq(2).within(() => {
-      cy.get('input').eq(0).should('have.value', '3')
+      cy.get('input[type="number"]').eq(0).should('have.value', '3')
     })
 
     // Add another row
@@ -208,7 +231,7 @@ describe('Add Row Functionality', () => {
 
     // Check that the new row has # = 4
     cy.get('table tbody tr').eq(3).within(() => {
-      cy.get('input').eq(0).should('have.value', '4')
+      cy.get('input[type="number"]').eq(0).should('have.value', '4')
     })
   })
 

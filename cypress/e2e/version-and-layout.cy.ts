@@ -24,6 +24,9 @@ describe('Version Display and Button Layout', () => {
   })
 
   beforeEach(() => {
+    // Set desktop viewport to ensure table is visible
+    cy.viewport(1280, 720)
+
     cy.clearAllCookies()
     cy.clearAllLocalStorage()
     cy.clearAllSessionStorage()

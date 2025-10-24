@@ -11,6 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Label } from '@/components/ui/label'
 import { recalculateRow } from '@/lib/calculations'
 
 // Sort direction type
@@ -245,8 +252,8 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
         </span>
       </div>
 
-      {/* Table - Mobile-optimized with shadcn/ui components */}
-      <div className="w-full rounded-md border mb-4 overflow-hidden">
+      {/* Desktop Table - Hidden on mobile */}
+      <div className="hidden md:block w-full rounded-md border mb-4 overflow-hidden">
         <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '60vh' }}>
           <Table>
             <TableHeader className="sticky top-0 z-10">
@@ -323,9 +330,79 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
         </div>
       </div>
 
-      {/* Mobile scroll hint */}
-      <div className="text-xs text-gray-500 text-center mb-2 sm:hidden">
-        ← Swipe to see all columns →
+      {/* Mobile Accordion Cards - Shown only on mobile */}
+      <div className="md:hidden space-y-3 mb-4">
+        <Accordion type="multiple" className="w-full">
+          {data.map((row, rowIndex) => {
+            const itemName = row['Item'] || row['name'] || `Item ${rowIndex + 1}`
+            const total = row['Total'] || 0
+            const rowNumber = row['#'] || rowIndex + 1
+
+            return (
+              <AccordionItem
+                key={rowIndex}
+                value={`item-${rowIndex}`}
+                className={`rounded-xl border mb-3 ${
+                  selectedRows.has(rowIndex) ? 'bg-destructive/10 border-destructive' : 'bg-white'
+                }`}
+              >
+                <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                  <div className="flex items-center justify-between w-full pr-2">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.has(rowIndex)}
+                        onChange={(e) => {
+                          e.stopPropagation()
+                          handleToggleRow(rowIndex)
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-5 h-5 cursor-pointer accent-destructive"
+                        aria-label={`Select row ${rowIndex + 1}`}
+                      />
+                      <div className="text-left">
+                        <div className="font-semibold text-sm">
+                          {rowNumber}. {itemName}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="font-bold text-sm">
+                      {typeof total === 'number' ? total.toFixed(2) : total}
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <div className="grid grid-cols-1 gap-3 pt-2">
+                    {columns
+                      .filter(column => !['select', 'index'].includes(column.toLowerCase()))
+                      .map((column) => (
+                        <div key={column} className="space-y-1">
+                          <Label htmlFor={`${rowIndex}-${column}`} className="text-xs font-medium text-gray-600">
+                            {column}
+                          </Label>
+                          <input
+                            id={`${rowIndex}-${column}`}
+                            type={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'number' : 'text'}
+                            value={row[column as keyof typeof row] || ''}
+                            onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
+                            className={`w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
+                              column === 'Item' ? 'font-medium' : ''
+                            } ${
+                              ['Price', 'Net', 'VAT', 'Total'].includes(column) ? 'text-right' : ''
+                            } ${
+                              column === 'Total' ? 'font-bold' : ''
+                            }`}
+                            step={['Price', 'Net', 'VAT', 'Total'].includes(column) ? '0.01' : '1'}
+                            inputMode={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'decimal' : 'text'}
+                          />
+                        </div>
+                      ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
+        </Accordion>
       </div>
     </div>
   )

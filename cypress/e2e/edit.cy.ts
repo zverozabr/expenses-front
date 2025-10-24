@@ -24,6 +24,9 @@ describe('Complete Receipt Editing Workflow', () => {
   })
 
   beforeEach(() => {
+    // Set desktop viewport to ensure table is visible
+    cy.viewport(1280, 720)
+
     // Clear any existing intercepts
     cy.clearAllCookies()
     cy.clearAllLocalStorage()

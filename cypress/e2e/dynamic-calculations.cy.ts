@@ -1,5 +1,8 @@
 describe('Dynamic Calculations', () => {
   beforeEach(() => {
+    // Set desktop viewport to ensure table is visible
+    cy.viewport(1280, 720)
+
     // Visit the edit page with a test session ID
     cy.visit('/edit?session_id=test-calculations-session')
 
