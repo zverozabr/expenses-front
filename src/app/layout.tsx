@@ -1,9 +1,7 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
-import { Toaster } from '@/components/ui/toaster'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { PWAProvider } from '@/components/PWAProvider'
+import { ClientProviders } from '@/components/ClientProviders'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -12,8 +10,6 @@ export const metadata: Metadata = {
   title: 'Telegram JSON Editor',
   description: 'Edit JSON tables from Telegram bot',
   manifest: '/manifest.json',
-  themeColor: '#000000',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -24,6 +20,18 @@ export const metadata: Metadata = {
     apple: '/icons/icon.svg',
   },
 }
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#000000',
+}
+
+// Disable static generation for all pages
+export const dynamic = 'force-dynamic'
+export const dynamicParams = true
 
 export default function RootLayout({
   children,
@@ -38,12 +46,9 @@ export default function RootLayout({
           src="https://telegram.org/js/telegram-web-app.js"
           strategy="beforeInteractive"
         />
-        <PWAProvider>
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
-        </PWAProvider>
-        <Toaster />
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   )

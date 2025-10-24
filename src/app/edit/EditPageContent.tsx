@@ -17,7 +17,7 @@ import { sendSessionIdToBot } from '@/lib/telegram'
  */
 export function EditPageContent() {
   const searchParams = useSearchParams()
-  const sessionId = searchParams.get('session_id')
+  const sessionId = searchParams?.get('session_id') || null
   const { data, loading, error, saveData } = useSessionData(sessionId)
   const { isInstallable, isOffline, installPWA } = usePWA()
 
