@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/accordion'
 import { Label } from '@/components/ui/label'
 import { recalculateRow } from '@/lib/calculations'
+import { useSelectOnFocus } from '@/hooks/useSelectOnFocus'
+import { NUMERIC_FIELDS, RECALCULATION_FIELDS, isNumericField, isRecalculationField, isRightAlignedField } from '@/constants/fields'
 
 // Sort direction type
 type SortDirection = 'asc' | 'desc' | null
@@ -58,6 +60,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
+  const handleFocus = useSelectOnFocus()
 
   // Update local state when prop changes
   React.useEffect(() => {
@@ -89,8 +92,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
         const bVal = b[column as keyof typeof b]
 
         // Handle numeric fields
-        const numericFields = ['#', 'Qty', 'Price', 'Net', 'VAT', 'Total']
-        if (numericFields.includes(column)) {
+        if (isNumericField(column)) {
           const aNum = Number(aVal) || 0
           const bNum = Number(bVal) || 0
           return newDirection === 'asc' ? aNum - bNum : bNum - aNum
@@ -113,11 +115,10 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   }, [sortColumn, sortDirection, originalData])
 
   const handleCellChange = useCallback((rowIndex: number, field: string, value: string) => {
-    const numericFields = ['#', 'Qty', 'Price', 'Net', 'VAT', 'Total']
-    const newValue = numericFields.includes(field) ? Number(value) || 0 : value
+    const newValue = isNumericField(field) ? Number(value) || 0 : value
 
     // Determine if we should recalculate related fields
-    const shouldRecalculate = ['Qty', 'Price', 'Net', 'VAT', 'Total'].includes(field)
+    const shouldRecalculate = isRecalculationField(field)
 
     // DRY: Single function to update a row with or without recalculation
     const updateRow = (prevData: ReceiptData) => {
@@ -305,22 +306,22 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                   {columns.map((column) => (
                     <TableCell key={column} className="p-2">
                       <input
-                        type={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'number' : 'text'}
+                        type={isNumericField(column) ? 'number' : 'text'}
                         value={row[column as keyof typeof row] || ''}
                         onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
-                        onFocus={(e) => e.target.select()}
+                        onFocus={handleFocus}
                         className={`w-full px-2 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
                           column === 'Item' ? 'font-medium' : ''
                         } ${
-                          ['Price', 'Net', 'VAT', 'Total'].includes(column) ? 'text-right' : ''
+                          isRightAlignedField(column) ? 'text-right' : ''
                         }`}
                         style={{
                           minWidth: column === 'Item' ? '190px' :
                                     column === '#' ? '50px' :
                                     ['Qty', 'Unit'].includes(column) ? '70px' : '90px'
                         }}
-                        step={['Price', 'Net', 'VAT', 'Total'].includes(column) ? '0.01' : '1'}
-                        inputMode={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'decimal' : 'text'}
+                        step={isRightAlignedField(column) ? '0.01' : '1'}
+                        inputMode={isNumericField(column) ? 'decimal' : 'text'}
                       />
                     </TableCell>
                   ))}
@@ -383,19 +384,19 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                           </Label>
                           <input
                             id={`${rowIndex}-${column}`}
-                            type={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'number' : 'text'}
+                            type={isNumericField(column) ? 'number' : 'text'}
                             value={row[column as keyof typeof row] || ''}
                             onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
-                            onFocus={(e) => e.target.select()}
+                            onFocus={handleFocus}
                             className={`w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
                               column === 'Item' ? 'font-medium' : ''
                             } ${
-                              ['Price', 'Net', 'VAT', 'Total'].includes(column) ? 'text-right' : ''
+                              isRightAlignedField(column) ? 'text-right' : ''
                             } ${
                               column === 'Total' ? 'font-bold' : ''
                             }`}
-                            step={['Price', 'Net', 'VAT', 'Total'].includes(column) ? '0.01' : '1'}
-                            inputMode={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'decimal' : 'text'}
+                            step={isRightAlignedField(column) ? '0.01' : '1'}
+                            inputMode={isNumericField(column) ? 'decimal' : 'text'}
                           />
                         </div>
                       ))}
