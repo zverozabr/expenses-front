@@ -15,6 +15,14 @@ const PWAContext = createContext<PWAContextType | undefined>(undefined)
 export function usePWA() {
   const context = useContext(PWAContext)
   if (context === undefined) {
+    // Return default values during SSR
+    if (typeof window === 'undefined') {
+      return {
+        isInstallable: false,
+        isOffline: false,
+        installPWA: () => {},
+      }
+    }
     throw new Error('usePWA must be used within a PWAProvider')
   }
   return context
