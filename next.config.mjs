@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 
 // Get git commit hash at build time
+// Updated: 2025-10-24 - Force rebuild to clear Vercel cache
 function getGitCommitHash() {
   // On Vercel, VERCEL_GIT_COMMIT_SHA is automatically available
   // We need to check multiple possible env vars
