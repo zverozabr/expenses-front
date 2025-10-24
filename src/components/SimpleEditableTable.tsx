@@ -308,6 +308,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                         type={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'number' : 'text'}
                         value={row[column as keyof typeof row] || ''}
                         onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
+                        onFocus={(e) => e.target.select()}
                         className={`w-full px-2 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
                           column === 'Item' ? 'font-medium' : ''
                         } ${
@@ -385,6 +386,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                             type={['#', 'Qty', 'Price', 'Net', 'VAT', 'Total'].includes(column) ? 'number' : 'text'}
                             value={row[column as keyof typeof row] || ''}
                             onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
+                            onFocus={(e) => e.target.select()}
                             className={`w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
                               column === 'Item' ? 'font-medium' : ''
                             } ${

@@ -101,6 +101,7 @@ export function EditSidePanel({
                 type="number"
                 value={editedRow['#'] || ''}
                 onChange={(e) => handleFieldChange('#', e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                 inputMode="numeric"
               />
@@ -114,6 +115,7 @@ export function EditSidePanel({
                 type="text"
                 value={editedRow['Art'] || ''}
                 onChange={(e) => handleFieldChange('Art', e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
@@ -126,6 +128,7 @@ export function EditSidePanel({
                 type="text"
                 value={editedRow['Item'] || ''}
                 onChange={(e) => handleFieldChange('Item', e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring font-medium"
               />
             </div>
@@ -139,6 +142,7 @@ export function EditSidePanel({
                   type="number"
                   value={editedRow['Qty'] || ''}
                   onChange={(e) => handleFieldChange('Qty', e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                   step="1"
                   inputMode="numeric"
@@ -153,6 +157,7 @@ export function EditSidePanel({
                   type="text"
                   value={editedRow['Unit'] || ''}
                   onChange={(e) => handleFieldChange('Unit', e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
@@ -173,6 +178,7 @@ export function EditSidePanel({
                 type="number"
                 value={editedRow['Price'] || ''}
                 onChange={(e) => handleFieldChange('Price', e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring text-right"
                 step="0.01"
                 inputMode="decimal"
@@ -187,6 +193,7 @@ export function EditSidePanel({
                 type="number"
                 value={editedRow['Net'] || ''}
                 onChange={(e) => handleFieldChange('Net', e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring text-right"
                 step="0.01"
                 inputMode="decimal"
@@ -201,6 +208,7 @@ export function EditSidePanel({
                 type="number"
                 value={editedRow['VAT'] || ''}
                 onChange={(e) => handleFieldChange('VAT', e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring text-right"
                 step="0.01"
                 inputMode="decimal"
@@ -215,6 +223,7 @@ export function EditSidePanel({
                 type="number"
                 value={editedRow['Total'] || ''}
                 onChange={(e) => handleFieldChange('Total', e.target.value)}
+                onFocus={(e) => e.target.select()}
                 className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring text-right font-semibold"
                 step="0.01"
                 inputMode="decimal"
