@@ -20,6 +20,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { recalculateRow } from '@/lib/calculations'
 import { useSelectOnFocus } from '@/hooks/useSelectOnFocus'
+import { useDragAndDrop } from '@/hooks/useDragAndDrop'
 import { NUMERIC_FIELDS, RECALCULATION_FIELDS, isNumericField, isRecalculationField, isRightAlignedField } from '@/constants/fields'
 
 // Sort direction type
@@ -61,6 +62,28 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const handleFocus = useSelectOnFocus()
+
+  // Handle row reordering with Item ID recalculation
+  const handleReorder = useCallback((fromIndex: number, toIndex: number) => {
+    const reorderAndRecalculateIds = (prevData: ReceiptData) => {
+      const newData = [...prevData]
+      const [movedItem] = newData.splice(fromIndex, 1)
+      newData.splice(toIndex, 0, movedItem)
+
+      // Recalculate all Item IDs
+      return newData.map((row, index) => ({
+        ...row,
+        '#': index + 1
+      }))
+    }
+
+    setData(reorderAndRecalculateIds)
+    setOriginalData(reorderAndRecalculateIds)
+  }, [])
+
+  const { dragState, handleTouchStart, handleTouchMove, handleTouchEnd, handleTap } = useDragAndDrop({
+    onReorder: handleReorder,
+  })
 
   // Update local state when prop changes
   React.useEffect(() => {
@@ -139,23 +162,17 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
 
   const handleAddRow = useCallback(() => {
     if (data.length > 0) {
-      const emptyRow = Object.keys(data[0]).reduce((acc, key) => {
-        // Set default values that pass validation
-        if (key === '#') {
-          acc[key] = data.length + 1
-        } else if (key === 'Qty') {
-          acc[key] = 1 // Default quantity to 1 (must be positive)
-        } else if (key === 'Unit') {
-          acc[key] = 'pcs' // Default unit
-        } else if (key === 'Item') {
-          acc[key] = 'New Item' // Default item name (cannot be empty)
-        } else if (['Price', 'Net', 'VAT', 'Total'].includes(key)) {
-          acc[key] = 0 // Default numeric values to 0
-        } else {
-          acc[key] = '' // Other fields can be empty
-        }
-        return acc
-      }, {} as any)
+      const emptyRow: typeof data[0] = {
+        '#': data.length + 1,
+        Qty: 1, // Default quantity to 1 (must be positive)
+        Unit: 'pcs', // Default unit
+        Item: 'New Item', // Default item name (cannot be empty)
+        Price: 0,
+        Art: '',
+        Net: 0,
+        VAT: 0,
+        Total: 0
+      }
 
       setData(prevData => [...prevData, emptyRow])
       setOriginalData(prevData => [...prevData, emptyRow])
@@ -340,15 +357,33 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
             const total = row['Total'] || 0
             const rowNumber = row['#'] || rowIndex + 1
 
+            const isDragging = dragState.draggedIndex === rowIndex
+            const isDragOver = dragState.dragOverIndex === rowIndex
+
             return (
               <AccordionItem
                 key={rowIndex}
                 value={`item-${rowIndex}`}
-                className={`rounded-xl border mb-3 ${
-                  selectedRows.has(rowIndex) ? 'bg-destructive/10 border-destructive' : 'bg-white'
+                data-drag-index={rowIndex}
+                className={`rounded-xl border mb-3 transition-colors ${
+                  selectedRows.has(rowIndex) ? 'bg-destructive/10 border-destructive' :
+                  isDragging ? 'bg-blue-50 border-blue-300' :
+                  isDragOver ? 'bg-blue-100 border-blue-400' :
+                  'bg-white'
                 }`}
+                onTouchStart={(e) => handleTouchStart(rowIndex, e)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
               >
-                <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                <AccordionTrigger
+                  className="px-4 py-3 hover:no-underline"
+                  onClick={(e) => {
+                    if (dragState.isDragging) {
+                      e.preventDefault()
+                      handleTap()
+                    }
+                  }}
+                >
                   <div className="flex items-center justify-between w-full pr-2">
                     <div className="flex items-center gap-3">
                       <input
@@ -363,8 +398,8 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                         aria-label={`Select row ${rowIndex + 1}`}
                       />
                       <div className="text-left flex-1 min-w-0">
-                        <div className="text-sm">
-                          {rowNumber} | {typeof row['Qty'] === 'number' ? row['Qty'].toFixed(2) : row['Qty']} | {itemName}
+                        <div className="text-sm font-normal" style={{ marginLeft: '-2px' }}>
+                          {rowNumber} {typeof row['Qty'] === 'number' ? row['Qty'].toFixed(2) : row['Qty']} {itemName}
                         </div>
                       </div>
                     </div>
@@ -376,7 +411,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                 <AccordionContent className="px-4 pb-4">
                   <div className="grid grid-cols-1 gap-3 pt-2">
                     {columns
-                      .filter(column => !['select', 'index'].includes(column.toLowerCase()))
+                      .filter(column => !['select', 'index', '#'].includes(column.toLowerCase()) && column !== '#')
                       .map((column) => (
                         <div key={column} className="space-y-1">
                           <Label htmlFor={`${rowIndex}-${column}`} className="text-xs font-medium text-gray-600">
