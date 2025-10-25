@@ -101,7 +101,7 @@ describe('Button Proportions on Mobile', () => {
   it('should display button symbols at correct size', () => {
     // Check that button symbols are 1.3em
     cy.get('button[aria-label="Add new row"]').should('have.css', 'font-size').then((fontSize) => {
-      const size = parseFloat(fontSize);
+      const size = parseFloat(fontSize as unknown as string);
       // Font size should be approximately 1.3 times the base size
       expect(size).to.be.greaterThan(16); // Assuming base is ~14px, 1.3x would be ~18px
     });

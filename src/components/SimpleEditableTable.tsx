@@ -634,13 +634,13 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
               Items: {data.length}
             </span>
             <span className="text-gray-700">
-              NET: {data.reduce((sum, row) => sum + (parseFloat(row['Net'] as string) || 0), 0).toFixed(2)}
+              NET: {data.reduce((sum, row) => sum + (parseFloat(String(row['Net'])) || 0), 0).toFixed(2)}
             </span>
             <span className="text-gray-700">
-              VAT: {data.reduce((sum, row) => sum + (parseFloat(row['VAT'] as string) || 0), 0).toFixed(2)}
+              VAT: {data.reduce((sum, row) => sum + (parseFloat(String(row['VAT'])) || 0), 0).toFixed(2)}
             </span>
             <span className="text-gray-700">
-              TOTAL: {data.reduce((sum, row) => sum + (parseFloat(row['Total'] as string) || 0), 0).toFixed(2)}
+              TOTAL: {data.reduce((sum, row) => sum + (parseFloat(String(row['Total'])) || 0), 0).toFixed(2)}
             </span>
           </div>
         </div>
