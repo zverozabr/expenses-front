@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label'
 import { ChevronUp, ChevronDown } from 'lucide-react'
 import { recalculateRow } from '@/lib/calculations'
 import { useSelectOnFocus } from '@/hooks/useSelectOnFocus'
+import { recalculateRowNumbers } from '@/lib/tableUtils'
 import { NUMERIC_FIELDS, RECALCULATION_FIELDS, isNumericField, isRecalculationField, isRightAlignedField } from '@/constants/fields'
 
 // Sort direction type
@@ -266,14 +267,14 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   const handleDeleteSelected = useCallback(() => {
     if (selectedRows.size > 0) {
       setData(prevData =>
-        prevData
-          .filter((_, index) => !selectedRows.has(index))
-          .map((row, index) => ({ ...row, '#': index + 1 }))
+        recalculateRowNumbers(
+          prevData.filter((_, index) => !selectedRows.has(index))
+        )
       )
       setOriginalData(prevData =>
-        prevData
-          .filter((_, index) => !selectedRows.has(index))
-          .map((row, index) => ({ ...row, '#': index + 1 }))
+        recalculateRowNumbers(
+          prevData.filter((_, index) => !selectedRows.has(index))
+        )
       )
       setSelectedRows(new Set())
     }

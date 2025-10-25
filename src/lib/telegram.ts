@@ -6,6 +6,8 @@
  * @see https://docs.telegram-mini-apps.com
  */
 
+import { TELEGRAM_DATA_SIZE_LIMIT, TELEGRAM_CLOSE_DELAY } from '@/constants/telegram'
+
 /**
  * Check if Telegram WebApp is available
  *
@@ -18,9 +20,12 @@ export function isTelegramWebAppAvailable(): boolean {
 
 /**
  * Validate if string is a valid UUID format (v4)
+ * Note: This is a duplicate of validation in src/lib/validation.ts
+ * TODO: Remove this and use the one from validation.ts
  *
  * @param str - String to validate
  * @returns true if valid UUID, false otherwise
+ * @deprecated Use isValidUUID from @/lib/validation instead
  */
 function isValidUUID(str: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -83,8 +88,8 @@ export function sendSessionIdToBot(sessionId: string | null | undefined): boolea
     const data = JSON.stringify({ session_id: trimmedSessionId })
 
     // Verify data size
-    if (data.length > 4096) {
-      console.warn('Data size exceeds 4096 bytes limit')
+    if (data.length > TELEGRAM_DATA_SIZE_LIMIT) {
+      console.warn(`Data size exceeds ${TELEGRAM_DATA_SIZE_LIMIT} bytes limit`)
       return false
     }
 
@@ -100,7 +105,7 @@ export function sendSessionIdToBot(sessionId: string | null | undefined): boolea
     // This ensures the app closes even if sendData doesn't auto-close
     setTimeout(() => {
       webApp.close()
-    }, 100)
+    }, TELEGRAM_CLOSE_DELAY)
 
     return true
   } catch (error) {
