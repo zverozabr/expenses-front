@@ -14,8 +14,8 @@ describe('SimpleEditableTable - Layout', () => {
     const onDataChange = jest.fn()
     const { container } = render(<SimpleEditableTable data={mockData} onDataChange={onDataChange} />)
 
-    // Find the controls container
-    const controlsContainer = container.querySelector('.mb-4.flex')
+    // Find the controls container (now uses inline style instead of mb-4 class)
+    const controlsContainer = container.querySelector('.flex.flex-col')
     expect(controlsContainer).toBeInTheDocument()
 
     // All three buttons should be present
