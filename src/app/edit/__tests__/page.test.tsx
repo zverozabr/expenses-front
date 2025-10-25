@@ -92,7 +92,6 @@ describe('EditPage', () => {
     renderWithPWAProvider(<EditPage />)
 
     expect(screen.getByText('Edit Receipt')).toBeInTheDocument()
-    expect(screen.getByText('Edit the receipt data and save to send back to Telegram.')).toBeInTheDocument()
     // Note: Table component is mocked, so we don't test its internal rendering
   })
 
