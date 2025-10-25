@@ -64,8 +64,8 @@ describe('SimpleEditableTable - Layout', () => {
     const buttonsContainer = container.querySelector('.flex.items-center')
     expect(buttonsContainer).toBeInTheDocument()
 
-    // Should contain all five buttons: Add, Delete, Up, Down, Save
+    // Should contain all six buttons: Add, Delete, Up, Down, Copy, Save
     const buttons = buttonsContainer?.querySelectorAll('button')
-    expect(buttons).toHaveLength(5)
+    expect(buttons).toHaveLength(6)
   })
 })

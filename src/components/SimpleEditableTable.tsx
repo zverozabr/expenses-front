@@ -233,6 +233,36 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
     setSelectedRows(newSelectedRows)
   }, [selectedRows, data])
 
+  // Copy selected rows
+  const handleCopySelected = useCallback(() => {
+    if (selectedRows.size === 0) return
+
+    const sortedIndices = Array.from(selectedRows).sort((a, b) => a - b)
+    const lastSelectedIndex = sortedIndices[sortedIndices.length - 1]
+
+    // Get copies of selected rows
+    const copiedRows = sortedIndices.map(index => ({ ...data[index] }))
+
+    // Insert copied rows after the last selected row
+    const newData = [
+      ...data.slice(0, lastSelectedIndex + 1),
+      ...copiedRows,
+      ...data.slice(lastSelectedIndex + 1)
+    ]
+
+    // Recalculate Item IDs
+    const recalculatedData = newData.map((row, index) => ({
+      ...row,
+      '#': index + 1
+    }))
+
+    setData(recalculatedData)
+    setOriginalData(recalculatedData)
+
+    // Clear selection
+    setSelectedRows(new Set())
+  }, [selectedRows, data])
+
   const handleDeleteSelected = useCallback(() => {
     if (selectedRows.size > 0) {
       setData(prevData =>
@@ -261,7 +291,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
 
   if (data.length === 0) {
     return (
-      <div className="text-center p-8 border rounded-lg bg-gray-50">
+      <div className="text-center p-8 border rounded-lg bg-gray-50" style={{ fontFamily: 'Verdana, sans-serif' }}>
         <p className="text-gray-600">No data available</p>
       </div>
     )
@@ -270,41 +300,39 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   const columns = Object.keys(data[0])
 
   return (
-    <div className="w-full">
+    <div className="w-full" style={{ fontFamily: 'Verdana, sans-serif' }}>
       {/* Table Controls */}
-      <div className="mb-4 flex flex-col gap-2">
-        <div className="flex items-center" style={{ width: '100%' }}>
+      <div className="flex flex-col" style={{ marginBottom: '2px' }}>
+        <div className="flex items-center" style={{ width: '100%', gap: 0 }}>
           <Button
             onClick={handleAddRow}
-            variant="default"
+            variant="outline"
             size="sm"
             aria-label="Add new row"
-            style={{ flex: '15' }}
+            style={{ flex: '10 1 0%', fontSize: '1.3em', minWidth: 0, padding: '0.5rem 0', boxSizing: 'border-box' }}
           >
-            + Add
+            +
           </Button>
-          <div style={{ flex: '3' }} />
           <Button
             onClick={handleDeleteSelected}
             disabled={selectedRows.size === 0}
-            variant="destructive"
+            variant="outline"
             size="sm"
             aria-label="Delete selected rows"
-            style={{ flex: '15' }}
+            style={{ flex: '10 1 0%', fontSize: '1.3em', minWidth: 0, padding: '0.5rem 0', boxSizing: 'border-box' }}
           >
-            - Delete
+            −
           </Button>
-          <div style={{ flex: '10' }} />
+          <div style={{ flex: '10 1 0%' }} />
           <Button
             onClick={handleMoveUp}
             disabled={selectedRows.size === 0}
             variant="outline"
             size="sm"
             aria-label="Move selected rows up"
-            style={{ flex: '10' }}
+            style={{ flex: '7 1 0%', fontSize: '1.3em', minWidth: 0, padding: '0.5rem 0', boxSizing: 'border-box' }}
           >
-            <ChevronUp className="h-4 w-4" />
-            Up
+            ↑
           </Button>
           <Button
             onClick={handleMoveDown}
@@ -312,18 +340,28 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
             variant="outline"
             size="sm"
             aria-label="Move selected rows down"
-            style={{ flex: '10' }}
+            style={{ flex: '7 1 0%', fontSize: '1.3em', minWidth: 0, padding: '0.5rem 0', boxSizing: 'border-box' }}
           >
-            <ChevronDown className="h-4 w-4" />
-            Down
+            ↓
           </Button>
-          <div style={{ flex: '3' }} />
+          <Button
+            onClick={handleCopySelected}
+            disabled={selectedRows.size === 0}
+            variant="outline"
+            size="sm"
+            aria-label="Copy selected rows"
+            style={{ flex: '7 1 0%', fontSize: '1.3em', minWidth: 0, padding: '0.5rem 0', boxSizing: 'border-box' }}
+          >
+            📋
+          </Button>
+          <div style={{ flex: '10 1 0%' }} />
           <Button
             onClick={handleSave}
             disabled={loading}
+            variant="outline"
             size="sm"
             aria-label="Save changes and send data back to bot"
-            style={{ flex: '15' }}
+            style={{ flex: '10 1 0%', minWidth: 0, padding: '0.5rem 0.25rem', boxSizing: 'border-box' }}
           >
             {loading ? '💾 Saving...' : '💾 Save'}
           </Button>
@@ -421,35 +459,35 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
               <AccordionItem
                 key={rowIndex}
                 value={`item-${rowIndex}`}
-                className={`rounded-xl border mb-3 ${
+                className={`rounded-xl border mb-0.5 ${
                   selectedRows.has(rowIndex) ? 'bg-destructive/10 border-destructive' : 'bg-white'
                 }`}
               >
                 <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                  <div className="flex items-center justify-between w-full pr-2">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-gray-600 min-w-[24px]">
-                        {rowNumber}
-                      </span>
-                      <input
-                        type="checkbox"
-                        checked={selectedRows.has(rowIndex)}
-                        onChange={(e) => {
-                          e.stopPropagation()
-                          handleToggleRow(rowIndex)
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-5 h-5 cursor-pointer accent-destructive"
-                        aria-label={`Select row ${rowIndex + 1}`}
-                      />
-                      <div className="text-left flex-1 min-w-0">
-                        <div className="text-sm font-normal" style={{ marginLeft: '-2px' }}>
-                          {typeof row['Qty'] === 'number' ? row['Qty'].toFixed(2) : row['Qty']} {itemName}
-                        </div>
-                      </div>
+                  <div className="flex items-center w-full pr-2" style={{ gap: '2px' }}>
+                    <span className="text-sm font-medium text-gray-600" style={{ flexShrink: 0, width: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {rowNumber}
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.has(rowIndex)}
+                      onChange={(e) => {
+                        e.stopPropagation()
+                        handleToggleRow(rowIndex)
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-5 h-5 cursor-pointer accent-destructive"
+                      style={{ flexShrink: 0, marginRight: '-2px' }}
+                      aria-label={`Select row ${rowIndex + 1}`}
+                    />
+                    <span className="text-sm font-normal text-gray-700" style={{ flexShrink: 0, width: '45px', textAlign: 'center', marginLeft: '-2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {row['Qty']}
+                    </span>
+                    <div className="text-left text-sm font-normal" style={{ flex: 1, minWidth: 0, maxWidth: 'calc(100% - 170px)', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                      {itemName}
                     </div>
-                    <div className="font-bold text-sm">
-                      {typeof total === 'number' ? total.toFixed(2) : total}
+                    <div className="font-bold text-sm" style={{ flexShrink: 0, width: '70px', textAlign: 'right', marginLeft: 'auto' }}>
+                      {total}
                     </div>
                   </div>
                 </AccordionTrigger>
@@ -588,6 +626,24 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
             )
           })}
         </Accordion>
+
+        {/* Summary Block */}
+        <div className="bg-gray-50 px-4 py-3" style={{ border: '1px solid #e5e7eb', marginTop: '2px' }}>
+          <div className="flex justify-between items-center gap-2 text-xs">
+            <span className="text-gray-700">
+              Items: {data.length}
+            </span>
+            <span className="text-gray-700">
+              NET: {data.reduce((sum, row) => sum + (parseFloat(row['Net'] as string) || 0), 0).toFixed(2)}
+            </span>
+            <span className="text-gray-700">
+              VAT: {data.reduce((sum, row) => sum + (parseFloat(row['VAT'] as string) || 0), 0).toFixed(2)}
+            </span>
+            <span className="text-gray-700">
+              TOTAL: {data.reduce((sum, row) => sum + (parseFloat(row['Total'] as string) || 0), 0).toFixed(2)}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   )

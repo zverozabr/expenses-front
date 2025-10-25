@@ -94,12 +94,15 @@ export function EditPageContent() {
 
   return (
     <div className="p-2 sm:p-4 max-w-6xl mx-auto">
-      <header className="mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
+      <header style={{ marginBottom: '2px' }}>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4" style={{ marginBottom: '2px' }}>
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Edit Receipt</h1>
+              <h1 className="text-lg sm:text-2xl font-normal text-gray-900">Edit Receipt</h1>
               <div className="flex items-center gap-2">
+                <span className="text-[10px] text-gray-400 font-mono bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200" title={`Git commit: ${process.env.NEXT_PUBLIC_GIT_COMMIT_SHA || 'dev'}`}>
+                  {getAppVersion()}
+                </span>
                 {/* Mobile tips - collapsed */}
                 <details className="sm:hidden text-xs text-gray-500">
                   <summary className="cursor-pointer font-medium bg-gray-50 px-2 py-1 rounded border border-gray-200">📖 How to use</summary>
@@ -109,12 +112,6 @@ export function EditPageContent() {
                     <p>☑️ Checkboxes to select rows for deletion</p>
                   </div>
                 </details>
-                <span className="text-xs text-gray-500">
-                  {data.length} rows
-                </span>
-                <span className="text-[10px] text-gray-400 font-mono bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200" title={`Git commit: ${process.env.NEXT_PUBLIC_GIT_COMMIT_SHA || 'dev'}`}>
-                  {getAppVersion()}
-                </span>
               </div>
             </div>
             <div className="text-xs sm:text-sm text-gray-500 space-y-1 hidden sm:block">
