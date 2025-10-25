@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sessionService } from '@/lib/sessionService'
 import { ApiResponse, ReceiptData } from '@/types'
 import { validateSessionId, safeValidateReceiptData, validateReceiptData } from '@/lib/validation'
-import { rateLimitMiddleware, apiRateLimits } from '@/lib/rateLimit'
-import { logger, withAPILogging, logSessionOperation, logValidationError, logRateLimitExceeded, getClientIP } from '@/lib/logger'
+import { logger, withAPILogging, logSessionOperation, logValidationError } from '@/lib/logger'
+import { withRateLimit } from '@/lib/apiHelpers'
 
 // Note: getClientIP is now in logger.ts for reuse
 
@@ -11,38 +11,14 @@ import { logger, withAPILogging, logSessionOperation, logValidationError, logRat
  * GET /api/session?session_id={id}
  * Retrieves session data for editing
  */
-async function _GET(request: NextRequest): Promise<NextResponse<ApiResponse<ReceiptData>>> {
-  // Apply rate limiting
-  const rateLimitResult = await rateLimitMiddleware(request)
-  if (!rateLimitResult.allowed) {
-    logRateLimitExceeded(
-      getClientIP(request),
-      new URL(request.url).pathname,
-      rateLimitResult.error?.retryAfter || 60
-    )
-
-    return NextResponse.json(
-      {
-        error: rateLimitResult.error?.message || 'Rate limit exceeded',
-        retryAfter: rateLimitResult.error?.retryAfter
-      },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': (rateLimitResult.error?.retryAfter || 60).toString(),
-          ...rateLimitResult.headers
-        }
-      }
-    )
-  }
-
+async function _GET(request: NextRequest, rateLimitHeaders: Record<string, string>): Promise<NextResponse<ApiResponse<ReceiptData>>> {
   const { searchParams } = new URL(request.url)
   const sessionIdParam = searchParams.get('session_id')
 
   if (!sessionIdParam) {
     return NextResponse.json(
       { error: 'Missing session_id parameter' },
-      { status: 400, headers: rateLimitResult.headers }
+      { status: 400, headers: rateLimitHeaders }
     ) as NextResponse<ApiResponse<ReceiptData>>
   }
 
@@ -55,7 +31,7 @@ async function _GET(request: NextRequest): Promise<NextResponse<ApiResponse<Rece
       logValidationError('sessionId', sessionIdParam, validationError instanceof Error ? validationError.message : 'Invalid session ID format')
       return NextResponse.json(
         { error: validationError instanceof Error ? validationError.message : 'Invalid session ID format' },
-        { status: 400, headers: rateLimitResult.headers }
+        { status: 400, headers: rateLimitHeaders }
       ) as NextResponse<ApiResponse<ReceiptData>>
     }
 
@@ -65,7 +41,7 @@ async function _GET(request: NextRequest): Promise<NextResponse<ApiResponse<Rece
 
       return NextResponse.json(
         { error: 'Session not found or expired' },
-        { status: 404, headers: rateLimitResult.headers }
+        { status: 404, headers: rateLimitHeaders }
       ) as NextResponse<ApiResponse<ReceiptData>>
     }
 
@@ -73,7 +49,7 @@ async function _GET(request: NextRequest): Promise<NextResponse<ApiResponse<Rece
 
     return NextResponse.json(
       { data: session.data },
-      { headers: rateLimitResult.headers }
+      { headers: rateLimitHeaders }
     ) as NextResponse<ApiResponse<ReceiptData>>
   } catch (error) {
     console.error('GET /api/session error:', error)
@@ -82,7 +58,7 @@ async function _GET(request: NextRequest): Promise<NextResponse<ApiResponse<Rece
 
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500, headers: rateLimitResult.headers }
+      { status: 500, headers: rateLimitHeaders }
     ) as NextResponse<ApiResponse<ReceiptData>>
   }
 }
@@ -91,31 +67,7 @@ async function _GET(request: NextRequest): Promise<NextResponse<ApiResponse<Rece
  * POST /api/session
  * Updates session data and marks it as ready for the bot
  */
-async function _POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
-  // Apply rate limiting
-  const rateLimitResult = await rateLimitMiddleware(request)
-  if (!rateLimitResult.allowed) {
-    logRateLimitExceeded(
-      getClientIP(request),
-      new URL(request.url).pathname,
-      rateLimitResult.error?.retryAfter || 60
-    )
-
-    return NextResponse.json(
-      {
-        error: rateLimitResult.error?.message || 'Rate limit exceeded',
-        retryAfter: rateLimitResult.error?.retryAfter
-      },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': (rateLimitResult.error?.retryAfter || 60).toString(),
-          ...rateLimitResult.headers
-        }
-      }
-    )
-  }
-
+async function _POST(request: NextRequest, rateLimitHeaders: Record<string, string>): Promise<NextResponse<ApiResponse>> {
   let body: any = {}
   let data: any = null
 
@@ -128,7 +80,7 @@ async function _POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
     if (!session_id || !data) {
       return NextResponse.json(
         { error: 'Missing required fields: session_id and data' },
-        { status: 400, headers: rateLimitResult.headers }
+        { status: 400, headers: rateLimitHeaders }
       ) as NextResponse<ApiResponse>
     }
 
@@ -140,7 +92,7 @@ async function _POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
       logValidationError('sessionId', session_id, validationError instanceof Error ? validationError.message : 'Invalid session ID format')
       return NextResponse.json(
         { error: validationError instanceof Error ? validationError.message : 'Invalid session ID format' },
-        { status: 400, headers: rateLimitResult.headers }
+        { status: 400, headers: rateLimitHeaders }
       ) as NextResponse<ApiResponse>
     }
 
@@ -151,7 +103,7 @@ async function _POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
       logValidationError('receiptData', data, validationError instanceof Error ? validationError.message : 'Validation failed')
       return NextResponse.json(
         { error: `Invalid receipt data: ${validationError instanceof Error ? validationError.message : 'Validation failed'}` },
-        { status: 400, headers: rateLimitResult.headers }
+        { status: 400, headers: rateLimitHeaders }
       ) as NextResponse<ApiResponse>
     }
 
@@ -162,7 +114,7 @@ async function _POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
 
     return NextResponse.json(
       { success: true },
-      { headers: rateLimitResult.headers }
+      { headers: rateLimitHeaders }
     ) as NextResponse<ApiResponse>
   } catch (error) {
     console.error('POST /api/session error:', error)
@@ -171,11 +123,12 @@ async function _POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
 
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500, headers: rateLimitResult.headers }
+      { status: 500, headers: rateLimitHeaders }
     ) as NextResponse<ApiResponse>
   }
 }
 
-// Export wrapped functions with logging
-export const GET = withAPILogging(_GET)
-export const POST = withAPILogging(_POST)
+// Export wrapped functions with rate limiting and logging
+// Note: withRateLimit wraps the handler first, then withAPILogging wraps the result
+export const GET = withAPILogging(withRateLimit(_GET))
+export const POST = withAPILogging(withRateLimit(_POST))
