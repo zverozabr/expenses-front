@@ -7,6 +7,7 @@
  */
 
 import { TELEGRAM_DATA_SIZE_LIMIT, TELEGRAM_CLOSE_DELAY } from '@/constants/telegram'
+import { isValidUUID } from '@/lib/validation'
 
 /**
  * Check if Telegram WebApp is available
@@ -16,20 +17,6 @@ import { TELEGRAM_DATA_SIZE_LIMIT, TELEGRAM_CLOSE_DELAY } from '@/constants/tele
 export function isTelegramWebAppAvailable(): boolean {
   return typeof window !== 'undefined' &&
          window.Telegram?.WebApp !== undefined
-}
-
-/**
- * Validate if string is a valid UUID format (v4)
- * Note: This is a duplicate of validation in src/lib/validation.ts
- * TODO: Remove this and use the one from validation.ts
- *
- * @param str - String to validate
- * @returns true if valid UUID, false otherwise
- * @deprecated Use isValidUUID from @/lib/validation instead
- */
-function isValidUUID(str: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  return uuidRegex.test(str)
 }
 
 /**

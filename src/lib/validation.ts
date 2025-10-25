@@ -49,6 +49,21 @@ export function validateSessionId(sessionId: string): string {
   return sessionIdSchema.parse(sessionId)
 }
 
+/**
+ * Check if a string is a valid UUID format (non-throwing version)
+ *
+ * @param str - String to validate
+ * @returns true if valid UUID, false otherwise
+ */
+export function isValidUUID(str: string): boolean {
+  try {
+    sessionIdSchema.parse(str)
+    return true
+  } catch {
+    return false
+  }
+}
+
 // Safe validation (returns error instead of throwing)
 export function safeValidateReceiptData(data: unknown): {
   success: true;
