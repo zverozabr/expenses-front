@@ -18,9 +18,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Label } from '@/components/ui/label'
+import { ChevronUp, ChevronDown } from 'lucide-react'
 import { recalculateRow } from '@/lib/calculations'
 import { useSelectOnFocus } from '@/hooks/useSelectOnFocus'
-import { useDragAndDrop } from '@/hooks/useDragAndDrop'
 import { NUMERIC_FIELDS, RECALCULATION_FIELDS, isNumericField, isRecalculationField, isRightAlignedField } from '@/constants/fields'
 
 // Sort direction type
@@ -62,28 +62,6 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
   const handleFocus = useSelectOnFocus()
-
-  // Handle row reordering with Item ID recalculation
-  const handleReorder = useCallback((fromIndex: number, toIndex: number) => {
-    const reorderAndRecalculateIds = (prevData: ReceiptData) => {
-      const newData = [...prevData]
-      const [movedItem] = newData.splice(fromIndex, 1)
-      newData.splice(toIndex, 0, movedItem)
-
-      // Recalculate all Item IDs
-      return newData.map((row, index) => ({
-        ...row,
-        '#': index + 1
-      }))
-    }
-
-    setData(reorderAndRecalculateIds)
-    setOriginalData(reorderAndRecalculateIds)
-  }, [])
-
-  const { dragState, handleTouchStart, handleTouchMove, handleTouchEnd, handleTap } = useDragAndDrop({
-    onReorder: handleReorder,
-  })
 
   // Update local state when prop changes
   React.useEffect(() => {
@@ -191,6 +169,70 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
     })
   }, [])
 
+  // Move selected rows up
+  const handleMoveUp = useCallback(() => {
+    if (selectedRows.size === 0) return
+
+    const sortedIndices = Array.from(selectedRows).sort((a, b) => a - b)
+
+    // Check if first selected row is already at the top
+    if (sortedIndices[0] === 0) return
+
+    const newData = [...data]
+
+    // Move each selected row up by one position
+    sortedIndices.forEach(index => {
+      const temp = newData[index]
+      newData[index] = newData[index - 1]
+      newData[index - 1] = temp
+    })
+
+    // Recalculate Item IDs
+    const recalculatedData = newData.map((row, index) => ({
+      ...row,
+      '#': index + 1
+    }))
+
+    setData(recalculatedData)
+    setOriginalData(recalculatedData)
+
+    // Update selected rows indices
+    const newSelectedRows = new Set(sortedIndices.map(i => i - 1))
+    setSelectedRows(newSelectedRows)
+  }, [selectedRows, data])
+
+  // Move selected rows down
+  const handleMoveDown = useCallback(() => {
+    if (selectedRows.size === 0) return
+
+    const sortedIndices = Array.from(selectedRows).sort((a, b) => b - a)
+
+    // Check if last selected row is already at the bottom
+    if (sortedIndices[0] === data.length - 1) return
+
+    const newData = [...data]
+
+    // Move each selected row down by one position
+    sortedIndices.forEach(index => {
+      const temp = newData[index]
+      newData[index] = newData[index + 1]
+      newData[index + 1] = temp
+    })
+
+    // Recalculate Item IDs
+    const recalculatedData = newData.map((row, index) => ({
+      ...row,
+      '#': index + 1
+    }))
+
+    setData(recalculatedData)
+    setOriginalData(recalculatedData)
+
+    // Update selected rows indices
+    const newSelectedRows = new Set(sortedIndices.map(i => i + 1))
+    setSelectedRows(newSelectedRows)
+  }, [selectedRows, data])
+
   const handleDeleteSelected = useCallback(() => {
     if (selectedRows.size > 0) {
       setData(prevData => prevData.filter((_, index) => !selectedRows.has(index)))
@@ -222,52 +264,58 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
   return (
     <div className="w-full">
       {/* Table Controls */}
-      <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-2 sm:flex-wrap sm:items-center">
-        <div className="flex gap-2 flex-1">
+      <div className="mb-4 flex flex-col gap-2">
+        <div className="flex gap-2 flex-wrap items-center">
           <Button
             onClick={handleAddRow}
             variant="default"
             size="sm"
-            className="flex-1 sm:flex-none"
             aria-label="Add new row"
           >
-            <span className="hidden sm:inline">+ Add Row</span>
-            <span className="sm:hidden">+ Row</span>
+            + Add
           </Button>
           <Button
             onClick={handleDeleteSelected}
             disabled={selectedRows.size === 0}
             variant="destructive"
             size="sm"
-            className="flex-1 sm:flex-none"
             aria-label="Delete selected rows"
           >
-            <span className="hidden sm:inline">Delete Selected ({selectedRows.size})</span>
-            <span className="sm:hidden">Delete ({selectedRows.size})</span>
+            - Delete
+          </Button>
+          <Button
+            onClick={handleMoveUp}
+            disabled={selectedRows.size === 0}
+            variant="outline"
+            size="sm"
+            aria-label="Move selected rows up"
+          >
+            <ChevronUp className="h-4 w-4" />
+            Up
+          </Button>
+          <Button
+            onClick={handleMoveDown}
+            disabled={selectedRows.size === 0}
+            variant="outline"
+            size="sm"
+            aria-label="Move selected rows down"
+          >
+            <ChevronDown className="h-4 w-4" />
+            Down
           </Button>
           <Button
             onClick={handleSave}
             disabled={loading}
             size="sm"
-            className="flex-1 sm:flex-none sm:ml-auto"
             aria-label="Save changes and send data back to bot"
           >
-            {loading ? (
-              <>
-                <span className="hidden sm:inline">💾 Saving...</span>
-                <span className="sm:hidden">💾</span>
-              </>
-            ) : (
-              <>
-                <span className="hidden sm:inline">💾 Save & Send Back</span>
-                <span className="sm:hidden">💾 Save</span>
-              </>
-            )}
+            {loading ? '💾 Saving...' : '💾 Save'}
           </Button>
         </div>
-        <span className="text-sm text-gray-600 self-center sm:self-start">
-          {data.length} {data.length === 1 ? 'row' : 'rows'}
-        </span>
+        <div className="text-xs text-gray-500">
+          <div>v1.0.0</div>
+          <div>{data.length} rows</div>
+        </div>
       </div>
 
       {/* Desktop Table - Hidden on mobile */}
@@ -357,33 +405,15 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
             const total = row['Total'] || 0
             const rowNumber = row['#'] || rowIndex + 1
 
-            const isDragging = dragState.draggedIndex === rowIndex
-            const isDragOver = dragState.dragOverIndex === rowIndex
-
             return (
               <AccordionItem
                 key={rowIndex}
                 value={`item-${rowIndex}`}
-                data-drag-index={rowIndex}
-                className={`rounded-xl border mb-3 transition-colors ${
-                  selectedRows.has(rowIndex) ? 'bg-destructive/10 border-destructive' :
-                  isDragging ? 'bg-blue-50 border-blue-300' :
-                  isDragOver ? 'bg-blue-100 border-blue-400' :
-                  'bg-white'
+                className={`rounded-xl border mb-3 ${
+                  selectedRows.has(rowIndex) ? 'bg-destructive/10 border-destructive' : 'bg-white'
                 }`}
-                onTouchStart={(e) => handleTouchStart(rowIndex, e)}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
               >
-                <AccordionTrigger
-                  className="px-4 py-3 hover:no-underline"
-                  onClick={(e) => {
-                    if (dragState.isDragging) {
-                      e.preventDefault()
-                      handleTap()
-                    }
-                  }}
-                >
+                <AccordionTrigger className="px-4 py-3 hover:no-underline">
                   <div className="flex items-center justify-between w-full pr-2">
                     <div className="flex items-center gap-3">
                       <input
@@ -410,31 +440,133 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
                   <div className="grid grid-cols-1 gap-3 pt-2">
-                    {columns
-                      .filter(column => !['select', 'index', '#'].includes(column.toLowerCase()) && column !== '#')
-                      .map((column) => (
-                        <div key={column} className="space-y-1">
-                          <Label htmlFor={`${rowIndex}-${column}`} className="text-xs font-medium text-gray-600">
-                            {column}
-                          </Label>
-                          <input
-                            id={`${rowIndex}-${column}`}
-                            type={isNumericField(column) ? 'number' : 'text'}
-                            value={row[column as keyof typeof row] || ''}
-                            onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
-                            onFocus={handleFocus}
-                            className={`w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
-                              column === 'Item' ? 'font-medium' : ''
-                            } ${
-                              isRightAlignedField(column) ? 'text-right' : ''
-                            } ${
-                              column === 'Total' ? 'font-bold' : ''
-                            }`}
-                            step={isRightAlignedField(column) ? '0.01' : '1'}
-                            inputMode={isNumericField(column) ? 'decimal' : 'text'}
-                          />
-                        </div>
-                      ))}
+                    {/* Row 1: Item (100%) */}
+                    <div className="space-y-1">
+                      <Label htmlFor={`${rowIndex}-Item`} className="text-xs font-medium text-gray-600">
+                        Item
+                      </Label>
+                      <input
+                        id={`${rowIndex}-Item`}
+                        type="text"
+                        value={row['Item'] || ''}
+                        onChange={(e) => handleCellChange(rowIndex, 'Item', e.target.value)}
+                        onFocus={handleFocus}
+                        className="w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all font-medium"
+                      />
+                    </div>
+
+                    {/* Row 2: Art (50%) | Unit (50%) */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor={`${rowIndex}-Art`} className="text-xs font-medium text-gray-600">
+                          Art
+                        </Label>
+                        <input
+                          id={`${rowIndex}-Art`}
+                          type="text"
+                          value={row['Art'] || ''}
+                          onChange={(e) => handleCellChange(rowIndex, 'Art', e.target.value)}
+                          onFocus={handleFocus}
+                          className="w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${rowIndex}-Unit`} className="text-xs font-medium text-gray-600">
+                          Unit
+                        </Label>
+                        <input
+                          id={`${rowIndex}-Unit`}
+                          type="text"
+                          value={row['Unit'] || ''}
+                          onChange={(e) => handleCellChange(rowIndex, 'Unit', e.target.value)}
+                          onFocus={handleFocus}
+                          className="w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Row 3: Qty (50%) | Price (50%) */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor={`${rowIndex}-Qty`} className="text-xs font-medium text-gray-600">
+                          Qty
+                        </Label>
+                        <input
+                          id={`${rowIndex}-Qty`}
+                          type="number"
+                          value={row['Qty'] || ''}
+                          onChange={(e) => handleCellChange(rowIndex, 'Qty', e.target.value)}
+                          onFocus={handleFocus}
+                          className="w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-right"
+                          step="0.01"
+                          inputMode="decimal"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${rowIndex}-Price`} className="text-xs font-medium text-gray-600">
+                          Price
+                        </Label>
+                        <input
+                          id={`${rowIndex}-Price`}
+                          type="number"
+                          value={row['Price'] || ''}
+                          onChange={(e) => handleCellChange(rowIndex, 'Price', e.target.value)}
+                          onFocus={handleFocus}
+                          className="w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-right"
+                          step="0.01"
+                          inputMode="decimal"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Row 4: Net (37.5%) | VAT (25%) | Total (37.5%) */}
+                    <div className="grid gap-3" style={{ gridTemplateColumns: '3fr 2fr 3fr' }}>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${rowIndex}-Net`} className="text-xs font-medium text-gray-600">
+                          Net
+                        </Label>
+                        <input
+                          id={`${rowIndex}-Net`}
+                          type="number"
+                          value={row['Net'] || ''}
+                          onChange={(e) => handleCellChange(rowIndex, 'Net', e.target.value)}
+                          onFocus={handleFocus}
+                          className="w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-right"
+                          step="0.01"
+                          inputMode="decimal"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${rowIndex}-VAT`} className="text-xs font-medium text-gray-600">
+                          VAT
+                        </Label>
+                        <input
+                          id={`${rowIndex}-VAT`}
+                          type="number"
+                          value={row['VAT'] || ''}
+                          onChange={(e) => handleCellChange(rowIndex, 'VAT', e.target.value)}
+                          onFocus={handleFocus}
+                          className="w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-right"
+                          step="0.01"
+                          inputMode="decimal"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${rowIndex}-Total`} className="text-xs font-medium text-gray-600">
+                          Total
+                        </Label>
+                        <input
+                          id={`${rowIndex}-Total`}
+                          type="number"
+                          value={row['Total'] || ''}
+                          onChange={(e) => handleCellChange(rowIndex, 'Total', e.target.value)}
+                          onFocus={handleFocus}
+                          className="w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-right font-bold"
+                          step="0.01"
+                          inputMode="decimal"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
