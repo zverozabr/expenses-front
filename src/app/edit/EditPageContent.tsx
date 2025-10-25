@@ -93,18 +93,18 @@ export function EditPageContent() {
   }
 
   return (
-    <div className="p-2 sm:p-4 max-w-6xl mx-auto">
+    <div className="p-2 max-w-6xl mx-auto">
       <header style={{ marginBottom: '2px' }}>
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4" style={{ marginBottom: '2px' }}>
+        <div className="flex flex-col gap-4" style={{ marginBottom: '2px' }}>
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <h1 className="text-lg sm:text-2xl font-normal text-gray-900">Edit Receipt</h1>
+              <h1 className="text-lg font-normal text-gray-900">Edit Receipt</h1>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-gray-400 font-mono bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200" title={`Git commit: ${process.env.NEXT_PUBLIC_GIT_COMMIT_SHA || 'dev'}`}>
                   {getAppVersion()}
                 </span>
-                {/* Mobile tips - collapsed */}
-                <details className="sm:hidden text-xs text-gray-500">
+                {/* Tips - collapsed */}
+                <details className="text-xs text-gray-500">
                   <summary className="cursor-pointer font-medium bg-gray-50 px-2 py-1 rounded border border-gray-200">📖 How to use</summary>
                   <div className="absolute right-2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 space-y-1.5 min-w-[240px] z-50">
                     <p className="font-semibold text-gray-700 border-b pb-1">Editing:</p>
@@ -131,8 +131,7 @@ export function EditPageContent() {
           {isInstallable && (
             <Button onClick={installPWA} size="sm" className="flex items-center gap-2 self-start">
               <Wifi className="w-4 h-4" />
-              <span className="hidden sm:inline">Install App</span>
-              <span className="sm:hidden">Install</span>
+              Install
             </Button>
           )}
         </div>

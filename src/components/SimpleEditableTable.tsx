@@ -368,87 +368,8 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
         </div>
       </div>
 
-      {/* Desktop Table - Hidden on mobile */}
-      <div className="hidden md:block w-full rounded-md border mb-4 overflow-hidden">
-        <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '60vh' }}>
-          <Table>
-            <TableHeader className="sticky top-0 z-10">
-              <TableRow>
-                <TableHead className="h-10 px-2 text-center align-middle font-medium whitespace-nowrap text-xs sm:text-sm w-10">
-                  ☑️
-                </TableHead>
-                {columns.map((column) => (
-                  <TableHead
-                    key={column}
-                    className="h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-xs sm:text-sm cursor-pointer hover:bg-muted/50 transition-colors"
-                    style={{
-                      minWidth: column === 'Item' ? '200px' :
-                                column === '#' ? '60px' :
-                                ['Qty', 'Unit'].includes(column) ? '80px' :
-                                ['Price', 'Net', 'VAT', 'Total'].includes(column) ? '100px' : '120px'
-                    }}
-                    onClick={() => handleSort(column)}
-                  >
-                    <div className="flex items-center gap-1">
-                      <span>{column}</span>
-                      {sortColumn === column && (
-                        <ChevronDownIcon
-                          className={`h-4 w-4 transition-transform ${
-                            sortDirection === 'desc' ? 'rotate-180' : ''
-                          }`}
-                        />
-                      )}
-                    </div>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((row, rowIndex) => (
-                <TableRow
-                  key={rowIndex}
-                  className={selectedRows.has(rowIndex) ? 'bg-destructive/10' : ''}
-                >
-                  <TableCell className="p-2 text-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.has(rowIndex)}
-                      onChange={() => handleToggleRow(rowIndex)}
-                      className="w-4 h-4 cursor-pointer accent-destructive"
-                      aria-label={`Select row ${rowIndex + 1}`}
-                    />
-                  </TableCell>
-                  {columns.map((column) => (
-                    <TableCell key={column} className="p-2">
-                      <input
-                        type={isNumericField(column) ? 'number' : 'text'}
-                        value={row[column as keyof typeof row] || ''}
-                        onChange={(e) => handleCellChange(rowIndex, column, e.target.value)}
-                        onFocus={handleFocus}
-                        className={`w-full px-2 py-1.5 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all ${
-                          column === 'Item' ? 'font-medium' : ''
-                        } ${
-                          isRightAlignedField(column) ? 'text-right' : ''
-                        }`}
-                        style={{
-                          minWidth: column === 'Item' ? '190px' :
-                                    column === '#' ? '50px' :
-                                    ['Qty', 'Unit'].includes(column) ? '70px' : '90px'
-                        }}
-                        step={isRightAlignedField(column) ? '0.01' : '1'}
-                        inputMode={isNumericField(column) ? 'decimal' : 'text'}
-                      />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* Mobile Accordion Cards - Shown only on mobile */}
-      <div className="md:hidden space-y-3 mb-4">
+      {/* Mobile Accordion Cards */}
+      <div className="space-y-3 mb-4">
         <Accordion type="multiple" className="w-full">
           {data.map((row, rowIndex) => {
             const itemName = row['Item'] || `Item ${rowIndex + 1}`

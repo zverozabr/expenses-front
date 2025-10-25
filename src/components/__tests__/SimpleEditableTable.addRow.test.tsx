@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { SimpleEditableTable } from '../SimpleEditableTable'
 import { ReceiptData } from '@/types'
@@ -18,9 +18,8 @@ describe('SimpleEditableTable - Add Row Functionality', () => {
     const addButton = screen.getByRole('button', { name: /Add new row/i })
     fireEvent.click(addButton)
 
-    // Verify a new row was added by checking for the default "New Item" text
-    const newItemInputs = screen.getAllByDisplayValue('New Item')
-    expect(newItemInputs.length).toBeGreaterThan(0)
+    // Verify a new row was added by checking for "New Item" text in accordion trigger
+    expect(screen.getByText('New Item')).toBeInTheDocument()
 
     // onDataChange should NOT be called yet (only when Save is clicked)
     expect(onDataChange).not.toHaveBeenCalled()
@@ -55,16 +54,18 @@ describe('SimpleEditableTable - Add Row Functionality', () => {
     const addButton = screen.getByRole('button', { name: /Add new row/i })
     fireEvent.click(addButton)
 
-    // Find all inputs and edit the new row (last row)
-    const inputs = screen.getAllByRole('textbox')
-
-    // Edit item field of the new row (should have default value "New Item")
-    const itemInputs = inputs.filter(input => (input as HTMLInputElement).value === 'New Item')
-    if (itemInputs.length > 0) {
-      const itemInput = itemInputs[0]
-      fireEvent.change(itemInput, { target: { value: 'Updated Item' } })
-      expect((itemInput as HTMLInputElement).value).toBe('Updated Item')
+    // Find the new item accordion and click to expand it
+    const newItemAccordion = screen.getByText('New Item').closest('button')
+    if (newItemAccordion) {
+      fireEvent.click(newItemAccordion)
     }
+
+    // Wait for accordion to expand and find the Item input
+    await waitFor(() => {
+      const itemInput = screen.getByDisplayValue('New Item')
+      fireEvent.change(itemInput, { target: { value: 'Updated Item' } })
+      expect(itemInput).toHaveValue('Updated Item')
+    })
 
     // Save
     const saveButton = screen.getByRole('button', { name: /Save changes and send data back to bot/i })
@@ -83,15 +84,15 @@ describe('SimpleEditableTable - Add Row Functionality', () => {
     // Add first row
     const addButton = screen.getByRole('button', { name: /Add new row/i })
     fireEvent.click(addButton)
-    expect(screen.getAllByDisplayValue('New Item')).toHaveLength(1)
+    expect(screen.getAllByText('New Item')).toHaveLength(1)
 
     // Add second row
     fireEvent.click(addButton)
-    expect(screen.getAllByDisplayValue('New Item')).toHaveLength(2)
+    expect(screen.getAllByText('New Item')).toHaveLength(2)
 
     // Add third row
     fireEvent.click(addButton)
-    expect(screen.getAllByDisplayValue('New Item')).toHaveLength(3)
+    expect(screen.getAllByText('New Item')).toHaveLength(3)
   })
 
   it('should include all added rows when saving', async () => {
@@ -104,14 +105,14 @@ describe('SimpleEditableTable - Add Row Functionality', () => {
     fireEvent.click(addButton)
     fireEvent.click(addButton)
 
-    // Should have 3 new items
-    expect(screen.getAllByDisplayValue('New Item')).toHaveLength(3)
+    // Should have 3 new items (visible in accordion triggers)
+    expect(screen.getAllByText('New Item')).toHaveLength(3)
 
     // Save
     const saveButton = screen.getByRole('button', { name: /Save changes and send data back to bot/i })
     fireEvent.click(saveButton)
 
-    // Verify all 5 rows are saved (2 original + 3 new)
+    // onDataChange should be called with 5 rows (2 original + 3 new)
     await waitFor(() => {
       expect(onDataChange).toHaveBeenCalledTimes(1)
     })
@@ -120,4 +121,3 @@ describe('SimpleEditableTable - Add Row Functionality', () => {
     expect(savedData).toHaveLength(5)
   })
 })
-
