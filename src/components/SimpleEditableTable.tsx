@@ -362,9 +362,9 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                         className="w-5 h-5 cursor-pointer accent-destructive"
                         aria-label={`Select row ${rowIndex + 1}`}
                       />
-                      <div className="text-left">
-                        <div className="font-semibold text-sm">
-                          {rowNumber}. {itemName}
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="text-sm">
+                          {rowNumber} | {typeof row['Qty'] === 'number' ? row['Qty'].toFixed(2) : row['Qty']} | {itemName}
                         </div>
                       </div>
                     </div>

@@ -94,34 +94,31 @@ export function EditPageContent() {
 
   return (
     <div className="p-2 sm:p-4 max-w-6xl mx-auto">
-      {/* Version badge - top right corner */}
-      <div className="fixed top-2 right-2 z-50">
-        <span className="text-[10px] text-gray-400 font-mono bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200" title={`Git commit: ${process.env.NEXT_PUBLIC_GIT_COMMIT_SHA || 'dev'}`}>
-          {getAppVersion()}
-        </span>
-      </div>
-
       <header className="mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
           <div className="flex-1">
-            <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-2">Edit Receipt</h1>
-            <p className="text-sm sm:text-base text-gray-600 mb-3">
-              Edit the receipt data and save to send back to Telegram.
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Edit Receipt</h1>
+              <div className="flex items-center gap-2">
+                {/* Mobile tips - collapsed */}
+                <details className="sm:hidden text-xs text-gray-500">
+                  <summary className="cursor-pointer font-medium bg-gray-50 px-2 py-1 rounded border border-gray-200">📖 How to use</summary>
+                  <div className="absolute right-2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 space-y-1 min-w-[200px] z-50">
+                    <p>💡 Tap cells to edit values</p>
+                    <p>🔢 Numeric fields: Qty, Price, Net, VAT, Total</p>
+                    <p>☑️ Checkboxes to select rows for deletion</p>
+                  </div>
+                </details>
+                <span className="text-[10px] text-gray-400 font-mono bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200" title={`Git commit: ${process.env.NEXT_PUBLIC_GIT_COMMIT_SHA || 'dev'}`}>
+                  {getAppVersion()}
+                </span>
+              </div>
+            </div>
             <div className="text-xs sm:text-sm text-gray-500 space-y-1 hidden sm:block">
               <p>💡 <strong>Tips:</strong> Double-click cells to edit, use checkboxes to select rows for deletion</p>
               <p>🔢 <strong>Numbers:</strong> Qty, Price, Net, VAT, Total fields accept only numeric values</p>
               <p>📊 <strong>Large tables:</strong> Automatic pagination and virtual scrolling for better performance</p>
             </div>
-            {/* Mobile tips - collapsed */}
-            <details className="sm:hidden text-xs text-gray-500">
-              <summary className="cursor-pointer font-medium mb-1">📖 How to use</summary>
-              <div className="space-y-1 mt-2 pl-2 border-l-2 border-gray-200">
-                <p>💡 Tap cells to edit values</p>
-                <p>🔢 Numeric fields: Qty, Price, Net, VAT, Total</p>
-                <p>☑️ Checkboxes to select rows for deletion</p>
-              </div>
-            </details>
           </div>
 
           {/* PWA Install Button */}
