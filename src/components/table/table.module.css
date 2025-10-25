@@ -1,0 +1,88 @@
+/* RowCard styles */
+.rowNumber {
+  flex-shrink: 0;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rowCheckbox {
+  flex-shrink: 0;
+  margin-right: -2px;
+}
+
+.rowQty {
+  flex-shrink: 0;
+  width: 45px;
+  text-align: center;
+  margin-left: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rowItem {
+  flex: 1;
+  min-width: 0;
+  max-width: calc(100% - 170px);
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.rowTotal {
+  flex-shrink: 0;
+  width: 70px;
+  text-align: right;
+  margin-left: auto;
+}
+
+.rowTrigger {
+  gap: 2px;
+}
+
+.gridNetVatTotal {
+  grid-template-columns: 3fr 2fr 3fr;
+}
+
+/* TableControls styles */
+.controlsContainer {
+  margin-bottom: 2px;
+}
+
+.controlsRow {
+  width: 100%;
+  gap: 0;
+}
+
+.buttonBase {
+  font-size: 1.3em;
+  min-width: 0;
+  padding: 0.5rem 0;
+  box-sizing: border-box;
+}
+
+.buttonFlex10 {
+  flex: 10 1 0%;
+}
+
+.buttonFlex7 {
+  flex: 7 1 0%;
+}
+
+.spacerFlex10 {
+  flex: 10 1 0%;
+}
+
+.saveButton {
+  flex: 10 1 0%;
+  min-width: 0;
+  padding: 0.5rem 0.25rem;
+  box-sizing: border-box;
+}
+
+/* SummaryBlock styles */
+.summaryContainer {
+  border: 1px solid #e5e7eb;
+  margin-top: 2px;
+}

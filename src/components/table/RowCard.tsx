@@ -7,6 +7,7 @@ import {
   AccordionContent,
 } from '@/components/ui/accordion'
 import { Label } from '@/components/ui/label'
+import styles from './table.module.css'
 
 interface RowCardProps {
   row: Record<string, string | number>
@@ -41,8 +42,8 @@ export const RowCard = memo(function RowCard({
       }`}
     >
       <AccordionTrigger className="px-4 py-3 hover:no-underline">
-        <div className="flex items-center w-full pr-2" style={{ gap: '2px' }}>
-          <span className="text-sm font-medium text-gray-600" style={{ flexShrink: 0, width: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className={`flex items-center w-full pr-2 ${styles.rowTrigger}`}>
+          <span className={`text-sm font-medium text-gray-600 ${styles.rowNumber}`}>
             {rowNumber}
           </span>
           <input
@@ -53,17 +54,16 @@ export const RowCard = memo(function RowCard({
               onToggleRow(rowIndex)
             }}
             onClick={(e) => e.stopPropagation()}
-            className="w-5 h-5 cursor-pointer accent-destructive"
-            style={{ flexShrink: 0, marginRight: '-2px' }}
+            className={`w-5 h-5 cursor-pointer accent-destructive ${styles.rowCheckbox}`}
             aria-label={`Select row ${rowIndex + 1}`}
           />
-          <span className="text-sm font-normal text-gray-700" style={{ flexShrink: 0, width: '45px', textAlign: 'center', marginLeft: '-2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span className={`text-sm font-normal text-gray-700 ${styles.rowQty}`}>
             {row['Qty']}
           </span>
-          <div className="text-left text-sm font-normal" style={{ flex: 1, minWidth: 0, maxWidth: 'calc(100% - 170px)', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+          <div className={`text-left text-sm font-normal ${styles.rowItem}`}>
             {itemName}
           </div>
-          <div className="font-bold text-sm" style={{ flexShrink: 0, width: '70px', textAlign: 'right', marginLeft: 'auto' }}>
+          <div className={`font-bold text-sm ${styles.rowTotal}`}>
             {total}
           </div>
         </div>
@@ -150,7 +150,7 @@ export const RowCard = memo(function RowCard({
           </div>
 
           {/* Row 4: Net (37.5%) | VAT (25%) | Total (37.5%) */}
-          <div className="grid gap-3" style={{ gridTemplateColumns: '3fr 2fr 3fr' }}>
+          <div className={`grid gap-3 ${styles.gridNetVatTotal}`}>
             <div className="space-y-1">
               <Label htmlFor={`${rowIndex}-Net`} className="text-xs font-medium text-gray-600">
                 Net

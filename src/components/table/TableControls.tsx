@@ -2,6 +2,7 @@
 
 import React, { memo } from 'react'
 import { Button } from '@/components/ui/button'
+import styles from './table.module.css'
 
 interface TableControlsProps {
   selectedRowsCount: number
@@ -31,14 +32,14 @@ export const TableControls = memo(function TableControls({
   const hasSelection = selectedRowsCount > 0
 
   return (
-    <div className="flex flex-col" style={{ marginBottom: '2px' }}>
-      <div className="flex items-center" style={{ width: '100%', gap: 0 }}>
+    <div className={`flex flex-col ${styles.controlsContainer}`}>
+      <div className={`flex items-center ${styles.controlsRow}`}>
         <Button
           onClick={onAddRow}
           variant="outline"
           size="sm"
           aria-label="Add new row"
-          style={{ flex: '10 1 0%', fontSize: '1.3em', minWidth: 0, padding: '0.5rem 0', boxSizing: 'border-box' }}
+          className={`${styles.buttonBase} ${styles.buttonFlex10}`}
         >
           +
         </Button>
@@ -48,18 +49,18 @@ export const TableControls = memo(function TableControls({
           variant="outline"
           size="sm"
           aria-label="Delete selected rows"
-          style={{ flex: '10 1 0%', fontSize: '1.3em', minWidth: 0, padding: '0.5rem 0', boxSizing: 'border-box' }}
+          className={`${styles.buttonBase} ${styles.buttonFlex10}`}
         >
           −
         </Button>
-        <div style={{ flex: '10 1 0%' }} />
+        <div className={styles.spacerFlex10} />
         <Button
           onClick={onMoveUp}
           disabled={!hasSelection}
           variant="outline"
           size="sm"
           aria-label="Move selected rows up"
-          style={{ flex: '7 1 0%', fontSize: '1.3em', minWidth: 0, padding: '0.5rem 0', boxSizing: 'border-box' }}
+          className={`${styles.buttonBase} ${styles.buttonFlex7}`}
         >
           ↑
         </Button>
@@ -69,7 +70,7 @@ export const TableControls = memo(function TableControls({
           variant="outline"
           size="sm"
           aria-label="Move selected rows down"
-          style={{ flex: '7 1 0%', fontSize: '1.3em', minWidth: 0, padding: '0.5rem 0', boxSizing: 'border-box' }}
+          className={`${styles.buttonBase} ${styles.buttonFlex7}`}
         >
           ↓
         </Button>
@@ -79,18 +80,18 @@ export const TableControls = memo(function TableControls({
           variant="outline"
           size="sm"
           aria-label="Copy selected rows"
-          style={{ flex: '7 1 0%', fontSize: '1.3em', minWidth: 0, padding: '0.5rem 0', boxSizing: 'border-box' }}
+          className={`${styles.buttonBase} ${styles.buttonFlex7}`}
         >
           📋
         </Button>
-        <div style={{ flex: '10 1 0%' }} />
+        <div className={styles.spacerFlex10} />
         <Button
           onClick={onSave}
           disabled={loading}
           variant="outline"
           size="sm"
           aria-label="Save changes and send data back to bot"
-          style={{ flex: '10 1 0%', minWidth: 0, padding: '0.5rem 0.25rem', boxSizing: 'border-box' }}
+          className={styles.saveButton}
         >
           {loading ? '💾 Saving...' : '💾 Save'}
         </Button>

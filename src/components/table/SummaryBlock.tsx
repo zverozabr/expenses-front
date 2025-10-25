@@ -1,6 +1,7 @@
 'use client'
 
 import React, { memo } from 'react'
+import styles from './table.module.css'
 
 interface SummaryBlockProps {
   data: Array<Record<string, string | number>>
@@ -17,7 +18,7 @@ export const SummaryBlock = memo(function SummaryBlock({ data }: SummaryBlockPro
   const grandTotal = data.reduce((sum, row) => sum + (parseFloat(String(row['Total'])) || 0), 0).toFixed(2)
 
   return (
-    <div className="bg-gray-50 px-4 py-3" style={{ border: '1px solid #e5e7eb', marginTop: '2px' }}>
+    <div className={`bg-gray-50 px-4 py-3 ${styles.summaryContainer}`}>
       <div className="flex justify-between items-center gap-2 text-xs">
         <span className="text-gray-700">
           Items: {itemsCount}

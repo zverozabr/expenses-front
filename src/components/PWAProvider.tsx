@@ -38,8 +38,8 @@ export function PWAProvider({ children }: PWAProviderProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const { toast } = useToast()
 
+  // Effect 1: Register service worker and handle updates
   useEffect(() => {
-    // Register service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
@@ -75,8 +75,10 @@ export function PWAProvider({ children }: PWAProviderProps) {
           console.log('SW registration failed: ', registrationError)
         })
     }
+  }, [toast])
 
-    // Listen for install prompt
+  // Effect 2: Handle PWA install prompt
+  useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e)
@@ -88,19 +90,26 @@ export function PWAProvider({ children }: PWAProviderProps) {
       })
     }
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-
-    // Handle successful installation
-    window.addEventListener('appinstalled', () => {
+    const handleAppInstalled = () => {
       setIsInstallable(false)
       setDeferredPrompt(null)
       toast({
         title: "Success!",
         description: "App installed successfully!",
       })
-    })
+    }
 
-    // Monitor online/offline status
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
+    }
+  }, [toast])
+
+  // Effect 3: Monitor online/offline status
+  useEffect(() => {
     const handleOnline = () => {
       setIsOffline(false)
       toast({
@@ -117,18 +126,17 @@ export function PWAProvider({ children }: PWAProviderProps) {
       })
     }
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-
     // Initial offline check
     setIsOffline(!navigator.onLine)
 
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
-  }, [])
+  }, [toast])
 
   const installPWA = () => {
     if (deferredPrompt) {
@@ -137,7 +145,6 @@ export function PWAProvider({ children }: PWAProviderProps) {
         if (choiceResult.outcome === 'accepted') {
           toast({
             title: "Installation started!",
-            description: "App installation started!",
           })
         }
         setDeferredPrompt(null)
@@ -146,14 +153,8 @@ export function PWAProvider({ children }: PWAProviderProps) {
     }
   }
 
-  const value: PWAContextType = {
-    isInstallable,
-    isOffline,
-    installPWA,
-  }
-
   return (
-    <PWAContext.Provider value={value}>
+    <PWAContext.Provider value={{ isInstallable, isOffline, installPWA }}>
       {children}
     </PWAContext.Provider>
   )

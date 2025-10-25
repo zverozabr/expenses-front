@@ -28,13 +28,13 @@ describe('Button Proportions', () => {
     const copyButton = screen.getByLabelText('Copy selected rows')
     const saveButton = screen.getByLabelText('Save changes and send data back to bot')
 
-    // Check flex values
-    expect(addButton).toHaveStyle({ flex: '10 1 0%' })
-    expect(deleteButton).toHaveStyle({ flex: '10 1 0%' })
-    expect(upButton).toHaveStyle({ flex: '7 1 0%' })
-    expect(downButton).toHaveStyle({ flex: '7 1 0%' })
-    expect(copyButton).toHaveStyle({ flex: '7 1 0%' })
-    expect(saveButton).toHaveStyle({ flex: '10 1 0%' })
+    // Check CSS classes (flex values are now in CSS)
+    expect(addButton.className).toContain('buttonFlex10')
+    expect(deleteButton.className).toContain('buttonFlex10')
+    expect(upButton.className).toContain('buttonFlex7')
+    expect(downButton.className).toContain('buttonFlex7')
+    expect(copyButton.className).toContain('buttonFlex7')
+    expect(saveButton.className).toContain('saveButton')
   })
 
   it('should have correct spacers between button groups', () => {
@@ -42,41 +42,27 @@ describe('Button Proportions', () => {
 
     // Get the button container
     const buttonContainer = container.querySelector('.flex.items-center')
-    expect(buttonContainer).toHaveStyle({ gap: '0' })
+    // Gap is now defined in CSS class controlsRow, not inline
+    expect(buttonContainer?.className).toContain('controlsRow')
 
-    // Get all spacer divs (they should have flex: '10 1 0%')
-    const spacers = container.querySelectorAll('div[style*="flex: 10 1 0%"]')
+    // Get all spacer divs (they should have spacerFlex10 class)
+    const spacers = container.querySelectorAll('[class*="spacerFlex10"]')
 
     // We should have 2 spacers (one after Delete, one after Copy)
-    // But we need to filter out buttons, so let's check the parent structure
-    const allFlexItems = buttonContainer?.children
+    expect(spacers.length).toBe(2)
 
-    if (allFlexItems) {
-      const flexValues = Array.from(allFlexItems).map(child => {
-        const style = (child as HTMLElement).style.flex
-        return style
-      })
-
-      // Expected pattern: [10, 10, 10, 7, 7, 7, 10, 10]
-      // Add, Delete, Spacer, Up, Down, Copy, Spacer, Save
-      expect(flexValues).toEqual([
-        '10 1 0%', // Add
-        '10 1 0%', // Delete
-        '10 1 0%', // Spacer
-        '7 1 0%',  // Up
-        '7 1 0%',  // Down
-        '7 1 0%',  // Copy
-        '10 1 0%', // Spacer
-        '10 1 0%'  // Save
-      ])
-    }
+    // Verify spacers have the correct CSS class
+    spacers.forEach(spacer => {
+      expect(spacer.className).toContain('spacerFlex10')
+    })
   })
 
   it('should have no gap between buttons', () => {
     const { container } = render(<SimpleEditableTable data={mockData} onDataChange={jest.fn()} />)
 
     const buttonContainer = container.querySelector('.flex.items-center')
-    expect(buttonContainer).toHaveStyle({ gap: '0' })
+    // Gap is now defined in CSS class controlsRow, not inline
+    expect(buttonContainer?.className).toContain('controlsRow')
   })
 
   it('should use simple symbols instead of icons', () => {
