@@ -235,8 +235,16 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
 
   const handleDeleteSelected = useCallback(() => {
     if (selectedRows.size > 0) {
-      setData(prevData => prevData.filter((_, index) => !selectedRows.has(index)))
-      setOriginalData(prevData => prevData.filter((_, index) => !selectedRows.has(index)))
+      setData(prevData =>
+        prevData
+          .filter((_, index) => !selectedRows.has(index))
+          .map((row, index) => ({ ...row, '#': index + 1 }))
+      )
+      setOriginalData(prevData =>
+        prevData
+          .filter((_, index) => !selectedRows.has(index))
+          .map((row, index) => ({ ...row, '#': index + 1 }))
+      )
       setSelectedRows(new Set())
     }
   }, [selectedRows])
@@ -265,30 +273,35 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
     <div className="w-full">
       {/* Table Controls */}
       <div className="mb-4 flex flex-col gap-2">
-        <div className="flex gap-2 flex-wrap items-center">
+        <div className="flex items-center" style={{ width: '100%' }}>
           <Button
             onClick={handleAddRow}
             variant="default"
             size="sm"
             aria-label="Add new row"
+            style={{ flex: '15' }}
           >
             + Add
           </Button>
+          <div style={{ flex: '3' }} />
           <Button
             onClick={handleDeleteSelected}
             disabled={selectedRows.size === 0}
             variant="destructive"
             size="sm"
             aria-label="Delete selected rows"
+            style={{ flex: '15' }}
           >
             - Delete
           </Button>
+          <div style={{ flex: '10' }} />
           <Button
             onClick={handleMoveUp}
             disabled={selectedRows.size === 0}
             variant="outline"
             size="sm"
             aria-label="Move selected rows up"
+            style={{ flex: '10' }}
           >
             <ChevronUp className="h-4 w-4" />
             Up
@@ -299,22 +312,21 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
             variant="outline"
             size="sm"
             aria-label="Move selected rows down"
+            style={{ flex: '10' }}
           >
             <ChevronDown className="h-4 w-4" />
             Down
           </Button>
+          <div style={{ flex: '3' }} />
           <Button
             onClick={handleSave}
             disabled={loading}
             size="sm"
             aria-label="Save changes and send data back to bot"
+            style={{ flex: '15' }}
           >
             {loading ? '💾 Saving...' : '💾 Save'}
           </Button>
-        </div>
-        <div className="text-xs text-gray-500">
-          <div>v1.0.0</div>
-          <div>{data.length} rows</div>
         </div>
       </div>
 
@@ -416,6 +428,9 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                 <AccordionTrigger className="px-4 py-3 hover:no-underline">
                   <div className="flex items-center justify-between w-full pr-2">
                     <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 min-w-[24px]">
+                        {rowNumber}
+                      </span>
                       <input
                         type="checkbox"
                         checked={selectedRows.has(rowIndex)}
@@ -429,7 +444,7 @@ export const SimpleEditableTable = memo(function SimpleEditableTable({
                       />
                       <div className="text-left flex-1 min-w-0">
                         <div className="text-sm font-normal" style={{ marginLeft: '-2px' }}>
-                          {rowNumber} {typeof row['Qty'] === 'number' ? row['Qty'].toFixed(2) : row['Qty']} {itemName}
+                          {typeof row['Qty'] === 'number' ? row['Qty'].toFixed(2) : row['Qty']} {itemName}
                         </div>
                       </div>
                     </div>

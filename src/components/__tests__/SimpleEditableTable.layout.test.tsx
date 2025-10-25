@@ -61,7 +61,7 @@ describe('SimpleEditableTable - Layout', () => {
     const { container } = render(<SimpleEditableTable data={mockData} onDataChange={onDataChange} />)
 
     // Find the flex container with buttons
-    const buttonsContainer = container.querySelector('.flex.gap-2.flex-wrap.items-center')
+    const buttonsContainer = container.querySelector('.flex.items-center')
     expect(buttonsContainer).toBeInTheDocument()
 
     // Should contain all five buttons: Add, Delete, Up, Down, Save

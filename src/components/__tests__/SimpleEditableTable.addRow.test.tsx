@@ -14,15 +14,13 @@ describe('SimpleEditableTable - Add Row Functionality', () => {
     const onDataChange = jest.fn()
     render(<SimpleEditableTable data={mockData} onDataChange={onDataChange} />)
 
-    // Initially 2 rows
-    expect(screen.getByText(/2 rows/i)).toBeInTheDocument()
-
     // Click Add Row button
     const addButton = screen.getByRole('button', { name: /Add new row/i })
     fireEvent.click(addButton)
 
-    // Now should have 3 rows
-    expect(screen.getByText(/3 rows/i)).toBeInTheDocument()
+    // Verify a new row was added by checking for the default "New Item" text
+    const newItemInputs = screen.getAllByDisplayValue('New Item')
+    expect(newItemInputs.length).toBeGreaterThan(0)
 
     // onDataChange should NOT be called yet (only when Save is clicked)
     expect(onDataChange).not.toHaveBeenCalled()
@@ -85,15 +83,15 @@ describe('SimpleEditableTable - Add Row Functionality', () => {
     // Add first row
     const addButton = screen.getByRole('button', { name: /Add new row/i })
     fireEvent.click(addButton)
-    expect(screen.getByText(/3 rows/i)).toBeInTheDocument()
+    expect(screen.getAllByDisplayValue('New Item')).toHaveLength(1)
 
     // Add second row
     fireEvent.click(addButton)
-    expect(screen.getByText(/4 rows/i)).toBeInTheDocument()
+    expect(screen.getAllByDisplayValue('New Item')).toHaveLength(2)
 
     // Add third row
     fireEvent.click(addButton)
-    expect(screen.getByText(/5 rows/i)).toBeInTheDocument()
+    expect(screen.getAllByDisplayValue('New Item')).toHaveLength(3)
   })
 
   it('should include all added rows when saving', async () => {
@@ -106,14 +104,14 @@ describe('SimpleEditableTable - Add Row Functionality', () => {
     fireEvent.click(addButton)
     fireEvent.click(addButton)
 
-    // Should show 5 rows
-    expect(screen.getByText(/5 rows/i)).toBeInTheDocument()
+    // Should have 3 new items
+    expect(screen.getAllByDisplayValue('New Item')).toHaveLength(3)
 
     // Save
     const saveButton = screen.getByRole('button', { name: /Save changes and send data back to bot/i })
     fireEvent.click(saveButton)
 
-    // Verify all 5 rows are saved
+    // Verify all 5 rows are saved (2 original + 3 new)
     await waitFor(() => {
       expect(onDataChange).toHaveBeenCalledTimes(1)
     })

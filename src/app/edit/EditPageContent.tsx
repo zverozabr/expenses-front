@@ -109,6 +109,9 @@ export function EditPageContent() {
                     <p>☑️ Checkboxes to select rows for deletion</p>
                   </div>
                 </details>
+                <span className="text-xs text-gray-500">
+                  {data.length} rows
+                </span>
                 <span className="text-[10px] text-gray-400 font-mono bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200" title={`Git commit: ${process.env.NEXT_PUBLIC_GIT_COMMIT_SHA || 'dev'}`}>
                   {getAppVersion()}
                 </span>
