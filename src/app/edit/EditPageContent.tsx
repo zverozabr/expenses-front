@@ -106,18 +106,24 @@ export function EditPageContent() {
                 {/* Mobile tips - collapsed */}
                 <details className="sm:hidden text-xs text-gray-500">
                   <summary className="cursor-pointer font-medium bg-gray-50 px-2 py-1 rounded border border-gray-200">📖 How to use</summary>
-                  <div className="absolute right-2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 space-y-1 min-w-[200px] z-50">
+                  <div className="absolute right-2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 space-y-1.5 min-w-[240px] z-50">
+                    <p className="font-semibold text-gray-700 border-b pb-1">Editing:</p>
                     <p>💡 Tap cells to edit values</p>
-                    <p>🔢 Numeric fields: Qty, Price, Net, VAT, Total</p>
-                    <p>☑️ Checkboxes to select rows for deletion</p>
+                    <p>🔢 Numeric: Qty, Price, Net, VAT, Total</p>
+
+                    <p className="font-semibold text-gray-700 border-b pb-1 pt-1">Buttons:</p>
+                    <p>➕ <strong>Add Row</strong> - Add new item</p>
+                    <p>🗑️ <strong>Delete</strong> - Remove selected rows</p>
+                    <p>⬆️ <strong>Up</strong> - Move selected row up</p>
+                    <p>⬇️ <strong>Down</strong> - Move selected row down</p>
+                    <p>📋 <strong>Copy</strong> - Duplicate selected row</p>
+                    <p>💾 <strong>Save</strong> - Save and send to bot</p>
+
+                    <p className="font-semibold text-gray-700 border-b pb-1 pt-1">Selection:</p>
+                    <p>☑️ Use checkboxes to select rows</p>
                   </div>
                 </details>
               </div>
-            </div>
-            <div className="text-xs sm:text-sm text-gray-500 space-y-1 hidden sm:block">
-              <p>💡 <strong>Tips:</strong> Double-click cells to edit, use checkboxes to select rows for deletion</p>
-              <p>🔢 <strong>Numbers:</strong> Qty, Price, Net, VAT, Total fields accept only numeric values</p>
-              <p>📊 <strong>Large tables:</strong> Automatic pagination and virtual scrolling for better performance</p>
             </div>
           </div>
 
