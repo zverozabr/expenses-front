@@ -128,8 +128,8 @@ describe('EditPage', () => {
     // Render component
     renderWithPWAProvider(<EditPage />)
 
-    // Find and click save button
-    const saveButton = screen.getByText('Save')
+    // Find and click save button (use getByRole to avoid matching text in tooltip)
+    const saveButton = screen.getByRole('button', { name: 'Save' })
     await userEvent.click(saveButton)
 
     // Wait for async operations
